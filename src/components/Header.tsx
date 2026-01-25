@@ -6,9 +6,9 @@ interface HeaderProps {
 }
 
 const AI_MODELS = [
-    { id: 'gemini-2.5-flash-preview-05-20', name: 'Gemini 2.5 Flash', description: 'Nhanh, tiết kiệm', isDefault: true },
-    { id: 'gemini-2.5-pro-preview-05-06', name: 'Gemini 2.5 Pro', description: 'Mạnh mẽ, chính xác', isDefault: false },
-    { id: 'gemini-2.0-flash', name: 'Gemini 2.0 Flash', description: 'Dự phòng ổn định', isDefault: false },
+    { id: 'gemini-3-flash-preview', name: 'Gemini 3 Flash', description: 'Mặc định, nhanh', isDefault: true },
+    { id: 'gemini-3-pro-preview', name: 'Gemini 3 Pro', description: 'Mạnh mẽ, chính xác', isDefault: false },
+    { id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash', description: 'Dự phòng ổn định', isDefault: false },
 ];
 
 export default function Header({ apiKey, selectedModel, onOpenApiKeyModal, onSelectModel }: HeaderProps) {

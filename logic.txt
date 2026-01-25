@@ -1,0 +1,303 @@
+🧠 QUY TRÌNH SUY NGHĨ & PHÂN TÍCH CỦA TÔI
+Khi bạn nói: "Tạo lệnh để tôi dán vào ai.studio để tạo app [tên app] có chức năng [mô tả]", tôi sẽ thực hiện 7 bước phân tích sau:
+
+BƯỚC 1: PHÂN LOẠI ỨNG DỤNG 🏷️
+Câu hỏi tôi tự hỏi:
+
+Đây là app thuộc lĩnh vực gì? (Giáo dục / Quản lý / Game / Tiện ích / Công cụ...)
+Người dùng chính là ai? (Giáo viên / Học sinh / Cả hai / Người dùng phổ thông)
+Mục đích chính là gì? (Tạo nội dung / Kiểm tra / Quản lý / Giải trí)
+Ví dụ:
+
+Bạn nói: "App kiểm tra bài cũ" → Tôi phân loại: Giáo dục - Công cụ kiểm tra
+Bạn nói: "App quản lý lớp học" → Tôi phân loại: Giáo dục - Quản lý + Gamification
+BƯỚC 2: TRÍCH XUẤT TÍNH NĂNG CỐT LÕI 🎯
+Câu hỏi tôi tự hỏi:
+
+Bạn đã nói rõ những tính năng nào? (Liệt kê từng cái)
+Những tính năng nào bạn chưa nói nhưng BẮT BUỘC phải có để app hoạt động?
+Có tính năng nào mâu thuẫn hoặc khó thực hiện không?
+Ví dụ cụ thể:
+
+Khi bạn nói: "App kiểm tra bài cũ với random học sinh 1-48, up file PDF, tạo câu hỏi từ phần gạch chân, chia thành nhiều đề 10 câu, thời gian 2 phút/đề, chấm điểm, cộng 0.25 điểm nếu trả lời nhanh dưới 4s"
+
+Tôi sẽ phân tích:
+
+✅ Tính năng bạn đã nói rõ:
+
+Random số 1-48
+Upload PDF
+Nhận diện phần gạch chân làm đáp án
+Chia thành nhiều đề (mỗi đề 10 câu)
+Đếm giờ 2 phút/đề
+Chấm điểm (1 điểm/câu đúng)
+Bonus 0.25 điểm nếu trả lời < 4s
+Nhận xét sau mỗi đề
+🔧 Tính năng tôi tự động thêm vào (vì cần thiết):
+
+Nút "Bắt đầu làm bài" (bạn không nói nhưng phải có)
+Hiển thị câu hỏi từng câu một (không thể hiện cả 10 câu cùng lúc)
+Nút "Câu tiếp theo" (để chuyển câu)
+Thanh tiến độ (để biết đang ở câu mấy)
+Lưu kết quả vào LocalStorage (để xem lại điểm)
+Màn hình kết quả cuối cùng (hiển thị tổng điểm + nhận xét)
+Nút "Làm lại" (để làm đề khác)
+⚠️ Tính năng khó thực hiện → Tôi sẽ đề xuất giải pháp thay thế:
+
+"Nhận diện phần gạch chân trong PDF" → Khó vì AI không "nhìn" được underline trong PDF text.
+Giải pháp: Tôi sẽ hướng dẫn AI nhận diện theo pattern (ví dụ: text trong dấu **...** hoặc __...__)
+BƯỚC 3: CHỌN TECH STACK & THƯ VIỆN 🛠️
+Câu hỏi tôi tự hỏi:
+
+App này cần những công nghệ/thư viện gì?
+Có cần xử lý toán học không? → MathJax
+Có cần biểu đồ không? → Chart.js
+Có cần đọc Excel không? → SheetJS
+Có cần hiệu ứng chúc mừng không? → Canvas-confetti
+Font chữ nào phù hợp với tiếng Việt? → 'Be Vietnam Pro' hoặc 'Nunito'
+Quy tắc cố định của tôi:
+
+Luôn dùng Single File HTML (HTML + CSS + JS trong 1 file duy nhất)
+Luôn dùng Google Fonts cho tiếng Việt ('Be Vietnam Pro', 'Nunito', 'Inter')
+Luôn dùng FontAwesome 6 cho icon
+Luôn thêm LocalStorage để lưu dữ liệu (không cần server)
+Ví dụ:
+
+App có công thức toán → Thêm MathJax CDN
+App có biểu đồ thống kê → Thêm Chart.js
+App upload Excel → Thêm SheetJS (xlsx.full.min.js)
+BƯỚC 4: THIẾT KẾ UI/UX 🎨
+Câu hỏi tôi tự hỏi:
+
+Giao diện nên trông như thế nào?
+Màu sắc chủ đạo là gì?
+Bố cục (Layout) ra sao?
+Có cần responsive (mobile-friendly) không?
+Quy tắc thiết kế của tôi:
+
+A. Chọn màu sắc theo lĩnh vực:
+
+Giáo dục: Xanh dương (#4A90E2) + Cam (#FF9500)
+Quản lý: Xanh lá (#28A745) + Navy (#1E3A8A)
+Game: Tím (#8B5CF6) + Neon (#F472B6)
+Tài chính: Xanh lá đậm (#10B981) + Xám (#6B7280)
+B. Bố cục (Layout):
+
+App kiểm tra: Giao diện flashcard (1 câu hỏi chiếm toàn màn hình)
+App quản lý: Dashboard với sidebar + main content
+App tạo nội dung: Form input bên trái + Preview bên phải
+C. Typography:
+
+Tiêu đề: Font size 24-32px, font-weight: 700
+Nội dung: Font size 16-18px, line-height: 1.6
+Nút bấm: Font size 16px, padding: 12px 24px, border-radius: 8px
+D. Yêu cầu đặc biệt bạn nói:
+
+"Chữ to, sát viền" → Tôi sẽ set font-size: 28px, padding: 20px
+"Màu sắc tươi sáng" → Tôi chọn gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%)
+"Giao diện game" → Tôi thêm animation, confetti, sound effects
+BƯỚC 5: XÂY DỰNG LOGIC XỬ LÝ ⚙️
+Câu hỏi tôi tự hỏi:
+
+AI cần làm gì với input của người dùng?
+Quy trình xử lý từng bước là gì?
+Có edge case (trường hợp đặc biệt) nào cần xử lý không?
+Ví dụ cụ thể:
+
+Với app "Kiểm tra bài cũ", logic xử lý là:
+
+Plain Text
+
+1. USER UPLOAD PDF
+   ↓
+2. AI ĐỌC NỘI DUNG PDF
+   ↓
+3. AI TRÍCH XUẤT CÂU HỎI & ĐÁP ÁN
+   (Tìm phần gạch chân hoặc pattern đặc biệt)
+   ↓
+4. AI PHÂN LOẠI CÂU HỎI
+   (Trắc nghiệm 4 lựa chọn / Đúng-Sai)
+   ↓
+5. AI CHIA THÀNH CÁC ĐỀ
+   (Mỗi đề 10 câu, trộn ngẫu nhiên)
+   ↓
+6. SINH RA HTML CODE
+   - Màn hình 1: Random học sinh (1-48)
+   - Màn hình 2: Hiển thị đề thi
+   - Màn hình 3: Đếm giờ + hiển thị câu hỏi
+   - Màn hình 4: Chấm điểm + nhận xét
+Edge cases tôi tự động xử lý:
+
+Nếu PDF không có nội dung → Hiển thị lỗi "File rỗng"
+Nếu không đủ 10 câu → Tạo ít hơn và thông báo
+Nếu user không chọn đáp án → Tính là sai
+Nếu hết giờ → Tự động chấm điểm
+BƯỚC 6: TẠO MẪU CODE (TEMPLATE) 📝
+Câu hỏi tôi tự hỏi:
+
+Cấu trúc HTML ra sao?
+CSS cần những class nào?
+JavaScript cần những function nào?
+Chỗ nào AI cần điền dữ liệu động?
+Cấu trúc template chuẩn của tôi:
+
+HTML
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>[TÊN APP]</title>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Thư viện bổ sung (nếu cần) -->
+    <!-- MathJax / Chart.js / SheetJS / Confetti -->
+    
+    <style>
+        /* CSS RESET */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        /* GLOBAL STYLES */
+        body {
+            font-family: 'Be Vietnam Pro', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+        }
+        
+        /* COMPONENT STYLES */
+        .container { /* ... */ }
+        .card { /* ... */ }
+        .button { /* ... */ }
+        
+        /* ANIMATIONS */
+        @keyframes fadeIn { /* ... */ }
+    </style>
+</head>
+<body>
+    <!-- HTML STRUCTURE -->
+    <div id="app">
+        <!-- Screen 1: Màn hình chính -->
+        <div id="screen-main">
+            <!-- Nội dung -->
+        </div>
+        
+        <!-- Screen 2: Màn hình làm bài -->
+        <div id="screen-quiz" style="display:none;">
+            <!-- Nội dung -->
+        </div>
+        
+        <!-- Screen 3: Màn hình kết quả -->
+        <div id="screen-result" style="display:none;">
+            <!-- Nội dung -->
+        </div>
+    </div>
+    
+    <script>
+        // ============ DATA ============
+        // AI_FILL_DATA_HERE: Đây là chỗ AI sẽ điền dữ liệu
+        const questions = [
+            // AI sẽ sinh ra mảng câu hỏi ở đây
+        ];
+        
+        // ============ STATE ============
+        let currentQuestion = 0;
+        let score = 0;
+        let startTime = Date.now();
+        
+        // ============ FUNCTIONS ============
+        function startQuiz() { /* ... */ }
+        function showQuestion() { /* ... */ }
+        function checkAnswer() { /* ... */ }
+        function showResult() { /* ... */ }
+        
+        // ============ EVENT LISTENERS ============
+        document.getElementById('btn-start').addEventListener('click', startQuiz);
+    </script>
+</body>
+</html>
+Đánh dấu chỗ AI cần điền: Tôi luôn thêm comment // AI_FILL_DATA_HERE hoặc /* AI_FILL_HERE */ để AI biết chỗ nào cần điền dữ liệu động.
+
+BƯỚC 7: VIẾT SYSTEM INSTRUCTION HOÀN CHỈNH 📄
+Cấu trúc System Instruction của tôi:
+
+Markdown
+
+# ROLE (Vai trò)
+Bạn là [chuyên gia X] với nhiệm vụ [Y].
+
+# NHIỆM VỤ (Task)
+Khi người dùng [hành động], bạn cần [xử lý như thế nào].
+
+# QUY TRÌNH XỬ LÝ (Process)
+1. Đọc file input (PDF/Excel/Text)
+2. Trích xuất dữ liệu theo pattern [X]
+3. Phân loại và xử lý
+4. Sinh ra HTML code
+
+# YÊU CẦU TÍNH NĂNG (Features)
+## Tính năng 1: [Tên]
+- Mô tả chi tiết
+- Logic xử lý
+- UI/UX
+
+## Tính năng 2: [Tên]
+...
+
+# YÊU CẦU GIAO DIỆN (UI/UX)
+- Màu sắc: [Hex codes]
+- Font chữ: [Google Fonts]
+- Layout: [Mô tả bố cục]
+- Responsive: [Có/Không]
+
+# MẪU CODE (Template)
+```html
+[PASTE TEMPLATE HTML Ở ĐÂY]
+XỬ LÝ LỖI (Error Handling)
+Nếu [trường hợp X] → [xử lý Y]
+Nếu [trường hợp A] → [xử lý B]
+OUTPUT FORMAT
+Bạn phải trả về:
+
+Lời giải thích ngắn gọn
+Code HTML hoàn chỉnh trong code block
+Hướng dẫn sử dụng
+Plain Text
+
+
+---
+
+## 🎯 TÓM TẮT QUY TRÌNH
+YÊU CẦU CỦA BẠN ↓ ┌──────────────────────────────────────┐ │ BƯỚC 1: Phân loại app │ │ (Giáo dục/Quản lý/Game/Tiện ích) │ └──────────────────────────────────────┘ ↓ ┌──────────────────────────────────────┐ │ BƯỚC 2: Trích xuất tính năng │ │ - Tính năng bạn nói │ │ - Tính năng tôi tự động thêm │ │ - Giải pháp cho tính năng khó │ └──────────────────────────────────────┘ ↓ ┌──────────────────────────────────────┐ │ BƯỚC 3: Chọn Tech Stack │ │ - HTML/CSS/JS (Single File) │ │ - Thư viện: MathJax/Chart.js/... │ │ - Font: Be Vietnam Pro/Nunito │ └──────────────────────────────────────┘ ↓ ┌──────────────────────────────────────┐ │ BƯỚC 4: Thiết kế UI/UX │ │ - Màu sắc theo lĩnh vực │ │ - Bố cục phù hợp │ │ - Typography chuẩn │ └──────────────────────────────────────┘ ↓ ┌──────────────────────────────────────┐ │ BƯỚC 5: Xây dựng Logic │ │ - Quy trình xử lý từng bước │ │ - Xử lý edge cases │ └──────────────────────────────────────┘ ↓ ┌──────────────────────────────────────┐ │ BƯỚC 6: Tạo Template Code │ │ - Cấu trúc HTML/CSS/JS │ │ - Đánh dấu chỗ AI điền dữ liệu │ └──────────────────────────────────────┘ ↓ ┌──────────────────────────────────────┐ │ BƯỚC 7: Viết System Instruction │ │ - Role + Task + Process │ │ - Features + UI/UX │ │ - Template + Error Handling │ └──────────────────────────────────────┘ ↓ SYSTEM INSTRUCTION HOÀN CHỈNH
+
+Plain Text
+
+
+---
+
+## 💡 MẸO QUAN TRỌNG
+
+**1. Tôi luôn tự hỏi: "Nếu tôi là người dùng, tôi cần gì nữa?"**
+- Bạn nói "tạo câu hỏi" → Tôi thêm "nút xóa câu hỏi", "nút sửa câu hỏi"
+- Bạn nói "hiển thị điểm" → Tôi thêm "biểu đồ thống kê", "lịch sử điểm"
+
+**2. Tôi luôn nghĩ đến trải nghiệm người dùng:**
+- Có loading state khi xử lý không?
+- Có thông báo lỗi rõ ràng không?
+- Có nút "Quay lại" không?
+- Có lưu tiến độ không?
+
+**3. Tôi luôn tối ưu cho giáo viên Việt Nam:**
+- Font chữ tiếng Việt đẹp
+- Màu sắc phù hợp văn hóa (không quá chói, không quá tối)
+- Giao diện đơn giản, dễ dùng (vì giáo viên không phải lập trình viên)
+- Có hướng dẫn chi tiết
+
+---
+
+Hy vọng câu trả lời này giúp bạn hiểu rõ "bộ não" của tôi hoạt động như thế nào! Nếu bạn muốn tôi phân tích chi tiết hơn cho một ví dụ cụ thể

@@ -728,75 +728,112 @@ function generateHTMLTemplate(idea: string, category: string, config: typeof cat
 }
 
 // ==========================================
-// BƯỚC 7: VIẾT SYSTEM INSTRUCTION HOÀN CHỈNH
+// BƯỚC 7: VIẾT SYSTEM INSTRUCTION HOÀN CHỈNH (LOGIC MỚI)
 // ==========================================
 function generateSystemInstruction(idea: string, category: string, config: typeof categoryConfig['Education']): string {
     const features = extractFeatures(idea, category);
-    const title = `${config.icon} ${idea.slice(0, 50)}${idea.length > 50 ? '...' : ''}`;
+    const lowerIdea = idea.toLowerCase();
 
-    const systemInstruction = `# 🚀 SYSTEM INSTRUCTION: ${title}
+    // Tạo tiêu đề sáng tạo
+    const appTitle = generateCreativeTitle(idea, category, config);
+
+    // Xác định các thư viện CDN cần dùng
+    const cdnLibraries = selectCDNLibraries(idea, category);
+
+    // Tự động đề xuất tính năng thông minh
+    const smartFeatures = inferSmartFeatures(idea, category);
+
+    // Tạo template HTML phù hợp với loại app
+    const htmlTemplate = generateSmartHTMLTemplate(idea, category, config, smartFeatures);
+
+    const systemInstruction = `# ${config.icon} System Instruction: ${appTitle}
 
 ---
 
 ## 📋 HƯỚNG DẪN SỬ DỤNG
 
-1. **Copy toàn bộ nội dung** System Instruction này
-2. Mở [Google AI Studio](https://aistudio.google.com/)
-3. **Dán vào ô "System Instructions"**
-4. Nhập dữ liệu đầu vào của bạn (nội dung bài học, danh sách câu hỏi, etc.)
-5. AI sẽ tự động tạo code HTML hoàn chỉnh
+1. **Copy** toàn bộ nội dung System Instruction bên dưới
+2. Truy cập [Google AI Studio](https://aistudio.google.com/)
+3. **Dán** vào ô "System Instructions" 
+4. Nhập dữ liệu của bạn vào ô chat (danh sách câu hỏi, nội dung bài học, etc.)
+5. AI sẽ tự động tạo file HTML hoàn chỉnh, bạn chỉ cần Save về máy và mở
 
 ---
 
-## 🎭 ROLE (Vai trò)
+## 🎭 VAI TRÒ (Role)
 
-\`\`\`markdown
-Bạn là một **Chuyên gia Phát triển Ứng dụng Web Full-stack** với hơn 10 năm kinh nghiệm, chuyên về:
-- ${category === 'Education' ? 'Công nghệ giáo dục (EdTech) và hệ thống học tập trực tuyến' :
-            category === 'Management' ? 'Hệ thống quản lý doanh nghiệp và dashboard analytics' :
-                category === 'Game' ? 'Game hóa (Gamification) và trải nghiệm tương tác' :
-                    category === 'Finance' ? 'Ứng dụng tài chính và theo dõi chi tiêu' :
-                        'Phát triển công cụ và tiện ích web'}
-- Thiết kế UI/UX hiện đại, thân thiện với người dùng Việt Nam
-- Tối ưu hóa trải nghiệm người dùng (UX) cho mọi thiết bị
+Bạn là một **Chuyên gia Kiến trúc Phần mềm (Software Architect)** và **Kỹ sư Prompt (Prompt Engineer)** cấp cao với hơn 10 năm kinh nghiệm. Chuyên môn:
 
-**Đối tượng người dùng:** ${config.targetUsers.join(', ')}
-**Mục đích chính:** ${config.purpose}
+- ${category === 'Education' ? '🎓 Công nghệ giáo dục (EdTech): Quiz, Flashcard, Bài giảng tương tác, Game học tập' :
+            category === 'Management' ? '📊 Hệ thống quản lý: Dashboard, CRUD, Báo cáo, Thống kê' :
+                category === 'Game' ? '🎮 Game hóa (Gamification): Điểm số, Level, Animation, Hiệu ứng' :
+                    category === 'Finance' ? '💰 Ứng dụng tài chính: Theo dõi chi tiêu, Biểu đồ, Báo cáo' :
+                        '🛠️ Công cụ & Tiện ích: Chuyển đổi, Xử lý file, Generator'}
+- 🎨 Thiết kế UI/UX hiện đại, đẹp mắt, chuyên nghiệp
+- 🇻🇳 Tối ưu cho người dùng Việt Nam (Font tiếng Việt, Giao diện thân thiện)
+- 📱 Responsive trên mọi thiết bị (Desktop, Tablet, Mobile)
+
+**Mục tiêu:** Biến ý tưởng thô sơ thành một ứng dụng Web (Single File HTML) hoàn chỉnh, đẹp mắt và giàu tính năng.
+
+---
+
+## 🎯 MÔ TẢ DỰ ÁN
+
+### Ý tưởng gốc:
+${idea}
+
+### Phân loại:
+- **Thể loại:** ${category}
+- **Đối tượng sử dụng:** ${config.targetUsers.join(', ')}
+- **Mục đích:** ${config.purpose}
+
+---
+
+## 🔍 QUY TRÌNH PHÂN TÍCH & SUY LUẬN (BẮT BUỘC)
+
+Khi nhận được dữ liệu đầu vào, bạn phải thực hiện các bước sau:
+
+### Bước 1: Xác định Thể loại & Template
+${category === 'Education' ? `
+- ✅ Đây là ứng dụng **Giáo dục/Quiz**
+- Cần: Cơ chế chấm điểm, đồng hồ đếm ngược, thanh tiến trình, hiệu ứng chúc mừng
+- Random câu hỏi, ôn lại câu sai, thống kê kết quả` :
+            category === 'Management' ? `
+- ✅ Đây là ứng dụng **Quản lý/Dashboard**  
+- Cần: CRUD (Thêm/Sửa/Xóa), tìm kiếm, lọc, biểu đồ, xuất Excel
+- Lưu LocalStorage, phân trang, modal form` :
+                category === 'Game' ? `
+- ✅ Đây là ứng dụng **Game/Giải trí**
+- Cần: Điểm số, level, bảng xếp hạng, animation, hiệu ứng âm thanh
+- Game loop, win/lose states, restart` :
+                    `
+- ✅ Đây là ứng dụng **Công cụ/Tiện ích**
+- Cần: Upload file, xử lý dữ liệu, preview, download kết quả
+- Drag & drop, copy to clipboard, loading states`}
+
+### Bước 2: Tự động Bổ sung Tính năng Thông minh
+Không chỉ làm theo yêu cầu, **phải tự động thêm** các tính năng chuyên nghiệp:
+
+${smartFeatures.map((f, i) => `${i + 1}. ${f}`).join('\n')}
+
+### Bước 3: Lựa chọn Tech Stack & Thư viện CDN
+
+\`\`\`html
+${cdnLibraries}
 \`\`\`
 
 ---
 
-## 🎯 NHIỆM VỤ (Task)
+## ✅ YÊU CẦU TÍNH NĂNG CHI TIẾT
 
-### Mô tả dự án:
-${idea}
+### Tính năng chính:
+${features.explicit.length > 0 ? features.explicit.map((f, i) => `${i + 1}. ✅ ${f}`).join('\n') : '(Dựa trên dữ liệu đầu vào của người dùng)'}
 
-### Nhiệm vụ của bạn:
-Tạo một **ứng dụng web hoàn chỉnh trong MỘT file HTML duy nhất** (Single File Application) với đầy đủ:
-- HTML structure
-- CSS styling (inline trong <style>)
-- JavaScript logic (inline trong <script>)
-- Không cần server, chạy được offline
-- Sử dụng LocalStorage để lưu dữ liệu
+### Tính năng bắt buộc (Auto-add):
+${features.implicit.map((f, i) => `${i + 1}. 🔧 ${f}`).join('\n')}
 
----
-
-## ✅ TÍNH NĂNG YÊU CẦU
-
-### Tính năng người dùng đã yêu cầu:
-${features.explicit.length > 0 ? features.explicit.map((f, i) => `${i + 1}. ${f}`).join('\n') : '(Sẽ được xác định từ input của người dùng)'}
-
-### Tính năng bắt buộc phải có:
-${features.implicit.map((f, i) => `${i + 1}. ${f}`).join('\n')}
-
-${features.difficult.length > 0 ? `
-### ⚠️ Lưu ý đặc biệt:
-${features.difficult.map((f, i) => `${i + 1}. ${f}`).join('\n')}
-` : ''}
-
----
-
-${getProcessingLogic(idea, category, features)}
+### Tính năng nâng cao (Đề xuất thêm):
+${smartFeatures.slice(0, 5).map((f, i) => `${i + 1}. 🚀 ${f}`).join('\n')}
 
 ---
 
@@ -804,70 +841,400 @@ ${getUIDesign(category, config)}
 
 ---
 
-## 🛠️ YÊU CẦU KỸ THUẬT
+## 💻 MẪU CODE TEMPLATE
 
-### Tech Stack & Thư viện CDN:
-
-\`\`\`html
-${getTechStack(category, features)}
-\`\`\`
-
-### Quy tắc code:
-1. **Single File HTML** - Tất cả HTML, CSS, JS trong 1 file
-2. **Không dùng framework** - Vanilla JS only
-3. **LocalStorage** - Lưu tất cả dữ liệu locally
-4. **Responsive** - Hoạt động tốt trên Desktop, Tablet, Mobile
-5. **Error Handling** - Bắt và hiển thị lỗi rõ ràng
-6. **Comments** - Có comment giải thích logic quan trọng
-
----
-
-## 📄 MẪU CODE TEMPLATE
+Sử dụng template sau làm nền tảng, **điền dữ liệu vào các vị trí được đánh dấu**:
 
 \`\`\`html
-${generateHTMLTemplate(idea, category, config, features)}
+${htmlTemplate}
 \`\`\`
 
 ---
 
-## ✅ CHECKLIST CHẤT LƯỢNG
+## ✅ CHECKLIST CHẤT LƯỢNG (BẮT BUỘC KIỂM TRA)
 
-Trước khi trả về code, hãy kiểm tra:
+Trước khi trả về code, hãy đảm bảo:
 
-- [ ] Font tiếng Việt hiển thị đúng (Be Vietnam Pro)
-- [ ] Responsive trên mọi thiết bị (Desktop/Tablet/Mobile)
-- [ ] LocalStorage hoạt động (dữ liệu không mất khi refresh)
-- [ ] Xử lý lỗi đầy đủ (thông báo rõ ràng khi có vấn đề)
-- [ ] Giao diện đẹp, chuyên nghiệp, có animation
-- [ ] Code trong 1 file duy nhất
-- [ ] Có comment giải thích logic quan trọng
-- [ ] Các nút bấm có hover effect
-- [ ] Loading state khi xử lý
-- [ ] Có thể chạy offline (không cần server)
-
----
-
-## 📤 OUTPUT FORMAT
-
-Khi người dùng cung cấp dữ liệu, bạn phải trả về:
-
-1. **Lời giải thích ngắn gọn** (2-3 câu) về những gì app làm được
-2. **Code HTML hoàn chỉnh** trong code block \`\`\`html ... \`\`\`
-3. **Hướng dẫn sử dụng** (cách mở file, cách dùng app)
+- [ ] ✅ **Font tiếng Việt** hiển thị đúng (Be Vietnam Pro/Nunito)
+- [ ] 📱 **Responsive** trên Desktop, Tablet, Mobile
+- [ ] 💾 **LocalStorage** hoạt động (dữ liệu không mất khi refresh)
+- [ ] 🚨 **Xử lý lỗi** đầy đủ (có thông báo rõ ràng)
+- [ ] 🎨 **Giao diện đẹp** với Shadow, Gradient, Animation
+- [ ] 📝 **Single File** (không tách CSS/JS ra ngoài)
+- [ ] 💬 **Comment code** giải thích logic quan trọng
+- [ ] 🖱️ **Hover effects** cho các nút bấm
+- [ ] ⏳ **Loading states** khi xử lý dữ liệu
+- [ ] 🔌 **Chạy Offline** (không cần server)
 
 ---
 
-## 🚀 BẮT ĐẦU TẠO APP!
+## 📤 OUTPUT FORMAT (ĐỊNH DẠNG TRẢ VỀ)
 
-Hãy đợi người dùng cung cấp dữ liệu đầu vào (nội dung bài học, danh sách câu hỏi, v.v.) rồi tạo app hoàn chỉnh.
+Khi người dùng cung cấp dữ liệu, bạn phải trả về theo format sau:
+
+### 1. Giới thiệu ngắn (2-3 câu)
+Mô tả app làm được gì, có những tính năng nổi bật nào.
+
+### 2. Code HTML hoàn chỉnh
+\`\`\`html
+<!DOCTYPE html>
+<html lang="vi">
+<!-- CODE ĐẦY ĐỦ Ở ĐÂY -->
+</html>
+\`\`\`
+
+### 3. Hướng dẫn sử dụng
+- Cách mở file (Save > Đổi đuôi .html > Mở bằng trình duyệt)
+- Các tính năng chính và cách sử dụng
+
+---
+
+## 🚀 BẮT ĐẦU!
+
+Hãy đợi người dùng cung cấp dữ liệu đầu vào (nội dung bài học, danh sách câu hỏi, dữ liệu quản lý, v.v.) rồi phân tích sâu và tạo app hoàn chỉnh, đẹp mắt, chuyên nghiệp nhất có thể.
+
+**QUAN TRỌNG:** Đừng chỉ code đơn giản! Hãy tạo ra sản phẩm WOW với:
+- Giao diện cực đẹp (Gradient, Shadow, Animation)
+- UX mượt mà (Smooth transitions, Micro-interactions)
+- Tính năng đầy đủ (Không thiếu edge cases)
 `;
 
     return systemInstruction;
 }
 
-function generateTitle(idea: string, category: string, config: typeof categoryConfig['Education']): string {
-    const shortIdea = idea.slice(0, 50);
-    return `${config.icon} App ${shortIdea}${idea.length > 50 ? '...' : ''}`;
+// Tạo tiêu đề sáng tạo cho app
+function generateCreativeTitle(idea: string, category: string, config: typeof categoryConfig['Education']): string {
+    const lowerIdea = idea.toLowerCase();
+
+    if (lowerIdea.includes('quiz') || lowerIdea.includes('trắc nghiệm')) {
+        return `App Quiz Trắc Nghiệm Thông Minh`;
+    } else if (lowerIdea.includes('kiểm tra bài cũ')) {
+        return `App Kiểm Tra Bài Cũ Đầu Giờ Pro`;
+    } else if (lowerIdea.includes('flashcard') || lowerIdea.includes('từ vựng')) {
+        return `App Flashcard Học Từ Vựng Thông Minh`;
+    } else if (lowerIdea.includes('quản lý')) {
+        return `Hệ Thống Quản Lý Thông Minh`;
+    } else if (lowerIdea.includes('game')) {
+        return `Game Học Tập Tương Tác`;
+    }
+
+    // Default: Lấy từ ý tưởng
+    const shortIdea = idea.slice(0, 40);
+    return `${shortIdea}${idea.length > 40 ? '...' : ''} Pro`;
+}
+
+// Chọn thư viện CDN phù hợp
+function selectCDNLibraries(idea: string, category: string): string {
+    const lowerIdea = idea.toLowerCase();
+    const libraries: string[] = [];
+
+    // Font tiếng Việt (Bắt buộc)
+    libraries.push(`<!-- Google Fonts - Tiếng Việt -->
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">`);
+
+    // Icons (Bắt buộc)
+    libraries.push(`<!-- FontAwesome 6 Icons -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">`);
+
+    // MathJax (nếu có Toán/Lý/Hóa)
+    if (lowerIdea.includes('toán') || lowerIdea.includes('lý') || lowerIdea.includes('hóa') ||
+        lowerIdea.includes('math') || lowerIdea.includes('công thức') || category === 'Education') {
+        libraries.push(`<!-- MathJax 3 - Công thức Toán học -->
+<script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>`);
+    }
+
+    // Chart.js (nếu có thống kê)
+    if (lowerIdea.includes('thống kê') || lowerIdea.includes('biểu đồ') ||
+        category === 'Management' || category === 'Finance') {
+        libraries.push(`<!-- Chart.js - Biểu đồ -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>`);
+    }
+
+    // SheetJS (nếu cần Excel)
+    if (lowerIdea.includes('excel') || lowerIdea.includes('xuất') ||
+        lowerIdea.includes('import') || category === 'Management') {
+        libraries.push(`<!-- SheetJS - Xuất/Nhập Excel -->
+<script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>`);
+    }
+
+    // Confetti (hiệu ứng chúc mừng)
+    if (lowerIdea.includes('quiz') || lowerIdea.includes('game') ||
+        lowerIdea.includes('kiểm tra') || category === 'Education' || category === 'Game') {
+        libraries.push(`<!-- Canvas Confetti - Hiệu ứng chúc mừng -->
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>`);
+    }
+
+    return libraries.join('\n\n');
+}
+
+// Tự động đề xuất tính năng thông minh
+function inferSmartFeatures(idea: string, category: string): string[] {
+    const lowerIdea = idea.toLowerCase();
+    const features: string[] = [];
+
+    if (category === 'Education' || lowerIdea.includes('quiz') || lowerIdea.includes('kiểm tra')) {
+        features.push(
+            'Random xáo trộn câu hỏi mỗi lần làm bài',
+            'Chế độ "Ôn lại câu sai" sau khi hoàn thành',
+            'Thống kê kết quả chi tiết (Điểm, Thời gian, Tỷ lệ đúng)',
+            'Bonus điểm nếu trả lời nhanh',
+            'Hiệu ứng Confetti khi hoàn thành xuất sắc',
+            'Lưu lịch sử làm bài vào LocalStorage',
+            'Đồng hồ đếm ngược với cảnh báo khi gần hết giờ',
+            'Thanh tiến trình progress bar'
+        );
+    }
+
+    if (category === 'Management' || lowerIdea.includes('quản lý')) {
+        features.push(
+            'Lưu dữ liệu vào LocalStorage (không mất khi F5)',
+            'Tìm kiếm realtime khi gõ',
+            'Lọc theo nhiều tiêu chí',
+            'Sắp xếp theo cột (tăng/giảm)',
+            'Xuất Excel với 1 click',
+            'Modal form thêm/sửa dữ liệu',
+            'Xác nhận trước khi xóa',
+            'Phân trang dữ liệu'
+        );
+    }
+
+    if (category === 'Game' || lowerIdea.includes('game')) {
+        features.push(
+            'Hệ thống điểm số với animation',
+            'Nhiều level với độ khó tăng dần',
+            'Bảng xếp hạng (Leaderboard)',
+            'Hiệu ứng âm thanh (Sound effects)',
+            'Animation mượt mà (CSS/Canvas)',
+            'Game Over và Restart đẹp mắt',
+            'Lưu high score vào LocalStorage'
+        );
+    }
+
+    // Thêm các tính năng chung
+    features.push(
+        'Responsive hoàn hảo trên mọi thiết bị',
+        'Loading indicator khi xử lý',
+        'Thông báo toast/alert đẹp mắt'
+    );
+
+    return features;
+}
+
+// Tạo HTML Template thông minh
+function generateSmartHTMLTemplate(idea: string, category: string, config: typeof categoryConfig['Education'], smartFeatures: string[]): string {
+    const title = generateCreativeTitle(idea, category, config);
+    const cdnLibraries = selectCDNLibraries(idea, category);
+
+    return `<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${config.icon} ${title}</title>
+    
+    ${cdnLibraries}
+    
+    <style>
+        /* ========== CSS RESET ========== */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        /* ========== BIẾN CSS ========== */
+        :root {
+            --primary: ${config.colors.primary};
+            --secondary: ${config.colors.secondary};
+            --gradient: ${config.colors.gradient};
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --dark: #1e293b;
+            --light: #f8fafc;
+            --shadow: 0 10px 40px rgba(0,0,0,0.12);
+            --radius: 16px;
+        }
+        
+        /* ========== GLOBAL ========== */
+        body {
+            font-family: 'Be Vietnam Pro', sans-serif;
+            background: var(--gradient);
+            min-height: 100vh;
+            color: var(--dark);
+            line-height: 1.6;
+        }
+        
+        /* ========== CONTAINER ========== */
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        /* ========== CARD ========== */
+        .card {
+            background: white;
+            border-radius: var(--radius);
+            padding: 30px;
+            box-shadow: var(--shadow);
+            animation: fadeIn 0.5s ease;
+        }
+        
+        /* ========== BUTTONS ========== */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 14px 28px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: inherit;
+        }
+        
+        .btn-primary {
+            background: var(--gradient);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+        }
+        
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        /* ========== ANIMATIONS ========== */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        
+        /* ========== RESPONSIVE ========== */
+        @media (max-width: 768px) {
+            .container { padding: 15px; }
+            .card { padding: 20px; }
+            .btn { padding: 12px 20px; font-size: 14px; }
+        }
+        
+        /* AI_CUSTOM_CSS_HERE - Thêm CSS tùy chỉnh */
+    </style>
+</head>
+<body>
+    <div id="app" class="container">
+        <!-- ========== SCREEN 1: START ========== -->
+        <div id="screen-start" class="screen active">
+            <div class="card">
+                <h1><i class="fas fa-rocket"></i> ${title}</h1>
+                <p>Mô tả ngắn về ứng dụng...</p>
+                
+                <!-- AI_GENERATED_START_CONTENT -->
+                
+                <button id="btn-start" class="btn btn-primary">
+                    <i class="fas fa-play"></i> Bắt đầu
+                </button>
+            </div>
+        </div>
+        
+        <!-- ========== SCREEN 2: MAIN ========== -->
+        <div id="screen-main" class="screen">
+            <div class="card">
+                <!-- AI_GENERATED_MAIN_CONTENT -->
+            </div>
+        </div>
+        
+        <!-- ========== SCREEN 3: RESULT ========== -->
+        <div id="screen-result" class="screen">
+            <div class="card">
+                <!-- AI_GENERATED_RESULT_CONTENT -->
+                
+                <button id="btn-restart" class="btn btn-primary">
+                    <i class="fas fa-redo"></i> Làm lại
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // ============ CẤU HÌNH ============
+        const CONFIG = {
+            // AI_FILL_CONFIG
+        };
+        
+        // ============ DỮ LIỆU ============
+        const appData = {
+            // AI_FILL_DATA - AI điền dữ liệu từ input của người dùng
+        };
+        
+        // ============ STATE ============
+        let state = {
+            currentScreen: 'screen-start',
+            // AI_FILL_STATE
+        };
+        
+        // ============ UTILITY FUNCTIONS ============
+        const $ = (sel) => document.querySelector(sel);
+        const $$ = (sel) => document.querySelectorAll(sel);
+        
+        function showScreen(id) {
+            $$('.screen').forEach(s => s.classList.remove('active'));
+            $('#' + id).classList.add('active');
+            state.currentScreen = id;
+        }
+        
+        function saveData(key, data) {
+            localStorage.setItem(key, JSON.stringify(data));
+        }
+        
+        function loadData(key) {
+            const data = localStorage.getItem(key);
+            return data ? JSON.parse(data) : null;
+        }
+        
+        function showToast(msg, type = 'info') {
+            // AI implement toast notification
+        }
+        
+        // ============ MAIN LOGIC ============
+        function init() {
+            console.log('🚀 App initialized!');
+            // AI_INIT_CODE
+        }
+        
+        function start() {
+            showScreen('screen-main');
+            // AI_START_CODE
+        }
+        
+        function showResult() {
+            showScreen('screen-result');
+            // AI_RESULT_CODE
+        }
+        
+        function restart() {
+            showScreen('screen-start');
+            // AI_RESTART_CODE
+        }
+        
+        // ============ EVENT LISTENERS ============
+        document.addEventListener('DOMContentLoaded', init);
+        $('#btn-start')?.addEventListener('click', start);
+        $('#btn-restart')?.addEventListener('click', restart);
+        
+        // AI_EVENT_LISTENERS
+    </script>
+</body>
+</html>`;
 }
 
 // Hàm gọi Gemini API

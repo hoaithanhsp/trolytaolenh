@@ -1237,6 +1237,12 @@ function generateSmartHTMLTemplate(idea: string, category: string, config: typeo
 </html>`;
 }
 
+// Tạo tiêu đề cho app
+function generateTitle(idea: string, category: string, config: typeof categoryConfig['Education']): string {
+    const shortIdea = idea.slice(0, 50);
+    return `${config.icon} App ${shortIdea}${idea.length > 50 ? '...' : ''}`;
+}
+
 // Hàm gọi Gemini API
 async function callGeminiAPI(
     prompt: string,

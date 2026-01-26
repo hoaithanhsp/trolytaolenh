@@ -1,5 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Sparkles, Loader2, Lightbulb, Plus, X, Users, BookOpen, GraduationCap, Target, Zap } from 'lucide-react';
+import { Sparkles, Loader2, Lightbulb, Plus, X, Users, Target, Zap, Award, Brain, RefreshCw } from 'lucide-react';
+import { enhanceIdeaWithAI, getAISuggestions } from '../lib/aiGenerator';
+import type { AISuggestionsResult } from '../lib/aiGenerator';
+import { getApiKey } from '../lib/storage';
 
 interface InputSectionProps {
   onGenerate: (idea: string) => Promise<void>;
@@ -12,254 +15,90 @@ interface Suggestion {
   items: string[];
 }
 
-// Phân tích ý tưởng và đưa ra gợi ý phù hợp
-function analyzeSuggestions(idea: string): Suggestion[] {
-  const lowerIdea = idea.toLowerCase();
-  const suggestions: Suggestion[] = [];
-
-  // ==========================================
-  // GỢI Ý VỀ CHỨC NĂNG
-  // ==========================================
-  const functionSuggestions: string[] = [];
-
-  if (lowerIdea.includes('quiz') || lowerIdea.includes('trắc nghiệm') || lowerIdea.includes('kiểm tra') || lowerIdea.includes('bài cũ')) {
-    functionSuggestions.push(
-      'Random học sinh (1-48)',
-      'Timer đếm ngược (2 phút/đề)',
-      'Chấm điểm tự động',
-      'Bonus điểm nếu trả lời nhanh',
-      'Nhận xét sau mỗi đề',
-      'Xem lại câu trả lời sai',
-      'Chia thành nhiều đề (10 câu/đề)',
-      'Xáo trộn câu hỏi ngẫu nhiên',
-      'Hiệu ứng chúc mừng khi hoàn thành'
-    );
-  }
-
-  if (lowerIdea.includes('quản lý') || lowerIdea.includes('dashboard')) {
-    functionSuggestions.push(
-      'Thêm/Sửa/Xóa dữ liệu',
-      'Tìm kiếm và lọc',
-      'Xuất Excel/PDF',
-      'Biểu đồ thống kê',
-      'Phân trang dữ liệu',
-      'Sắp xếp theo cột',
-      'Import dữ liệu từ Excel'
-    );
-  }
-
-  if (lowerIdea.includes('game') || lowerIdea.includes('trò chơi') || lowerIdea.includes('đố')) {
-    functionSuggestions.push(
-      'Hệ thống điểm số',
-      'Bảng xếp hạng',
-      'Nhiều cấp độ khó',
-      'Hiệu ứng âm thanh',
-      'Animation mượt mà',
-      'Hệ thống mạng sống',
-      'Power-ups/Bonus'
-    );
-  }
-
-  if (lowerIdea.includes('pdf') || lowerIdea.includes('upload') || lowerIdea.includes('file')) {
-    functionSuggestions.push(
-      'Kéo thả file (Drag & Drop)',
-      'Preview trước khi xử lý',
-      'Trích xuất nội dung từ PDF',
-      'Tự động nhận diện câu hỏi',
-      'Export kết quả'
-    );
-  }
-
-  // Thêm gợi ý chung nếu chưa có nhiều
-  if (functionSuggestions.length < 3) {
-    functionSuggestions.push(
-      'Lưu dữ liệu LocalStorage',
-      'Giao diện responsive (Mobile/Desktop)',
-      'Loading indicator khi xử lý',
-      'Thông báo lỗi rõ ràng'
-    );
-  }
-
-  if (functionSuggestions.length > 0) {
-    suggestions.push({
-      category: 'Chức năng',
-      icon: <Zap size={16} />,
-      items: functionSuggestions.slice(0, 8)
-    });
-  }
-
-  // ==========================================
-  // GỢI Ý VỀ ĐỐI TƯỢNG SỬ DỤNG
-  // ==========================================
-  const audienceSuggestions: string[] = [];
-
-  if (lowerIdea.includes('học') || lowerIdea.includes('sinh') || lowerIdea.includes('giáo') || lowerIdea.includes('lớp') || lowerIdea.includes('kiểm tra') || lowerIdea.includes('bài')) {
-    audienceSuggestions.push(
-      'Dành cho giáo viên',
-      'Dành cho học sinh',
-      'Dành cho cả giáo viên và học sinh',
-      'Phụ huynh theo dõi kết quả'
-    );
-  } else if (lowerIdea.includes('quản lý') || lowerIdea.includes('doanh') || lowerIdea.includes('nhân viên')) {
-    audienceSuggestions.push(
-      'Dành cho quản lý',
-      'Dành cho nhân viên',
-      'Dành cho doanh nghiệp nhỏ',
-      'Dành cho freelancer'
-    );
-  } else {
-    audienceSuggestions.push(
-      'Dành cho mọi đối tượng',
-      'Dành cho học sinh/sinh viên',
-      'Dành cho giáo viên',
-      'Dành cho người đi làm'
-    );
-  }
-
-  suggestions.push({
-    category: 'Đối tượng sử dụng',
-    icon: <Users size={16} />,
-    items: audienceSuggestions
-  });
-
-  // ==========================================
-  // GỢI Ý VỀ MÔN HỌC (nếu là app giáo dục)
-  // ==========================================
-  if (lowerIdea.includes('học') || lowerIdea.includes('quiz') || lowerIdea.includes('kiểm tra') || lowerIdea.includes('bài') || lowerIdea.includes('trắc nghiệm')) {
-    const subjectSuggestions: string[] = [];
-
-    if (lowerIdea.includes('toán') || lowerIdea.includes('math')) {
-      subjectSuggestions.push('Toán học', 'Đại số', 'Hình học', 'Giải tích');
-    } else if (lowerIdea.includes('anh') || lowerIdea.includes('english')) {
-      subjectSuggestions.push('Tiếng Anh', 'Ngữ pháp', 'Từ vựng', 'Giao tiếp');
-    } else if (lowerIdea.includes('lý') || lowerIdea.includes('physics')) {
-      subjectSuggestions.push('Vật lý', 'Cơ học', 'Điện học', 'Quang học');
-    } else if (lowerIdea.includes('hóa') || lowerIdea.includes('chemistry')) {
-      subjectSuggestions.push('Hóa học', 'Hữu cơ', 'Vô cơ', 'Hóa phân tích');
-    } else if (lowerIdea.includes('sinh') || lowerIdea.includes('biology')) {
-      subjectSuggestions.push('Sinh học', 'Di truyền', 'Sinh thái', 'Giải phẫu');
-    } else {
-      subjectSuggestions.push(
-        'Toán học',
-        'Tiếng Anh',
-        'Vật lý',
-        'Hóa học',
-        'Sinh học',
-        'Ngữ văn',
-        'Lịch sử',
-        'Địa lý'
-      );
-    }
-
-    suggestions.push({
-      category: 'Môn học',
-      icon: <BookOpen size={16} />,
-      items: subjectSuggestions.slice(0, 6)
-    });
-  }
-
-  // ==========================================
-  // GỢI Ý VỀ LỚP HỌC (nếu là app giáo dục)
-  // ==========================================
-  if (lowerIdea.includes('học') || lowerIdea.includes('quiz') || lowerIdea.includes('kiểm tra') || lowerIdea.includes('bài') || lowerIdea.includes('lớp')) {
-    const gradeSuggestions: string[] = [];
-
-    if (lowerIdea.includes('tiểu học') || lowerIdea.includes('primary')) {
-      gradeSuggestions.push('Lớp 1', 'Lớp 2', 'Lớp 3', 'Lớp 4', 'Lớp 5');
-    } else if (lowerIdea.includes('thcs') || lowerIdea.includes('cấp 2')) {
-      gradeSuggestions.push('Lớp 6', 'Lớp 7', 'Lớp 8', 'Lớp 9');
-    } else if (lowerIdea.includes('thpt') || lowerIdea.includes('cấp 3')) {
-      gradeSuggestions.push('Lớp 10', 'Lớp 11', 'Lớp 12');
-    } else if (lowerIdea.includes('đại học') || lowerIdea.includes('university')) {
-      gradeSuggestions.push('Đại học/Cao đẳng', 'Năm 1', 'Năm 2', 'Năm 3', 'Năm 4');
-    } else {
-      gradeSuggestions.push(
-        'Tiểu học (Lớp 1-5)',
-        'THCS (Lớp 6-9)',
-        'THPT (Lớp 10-12)',
-        'Đại học/Cao đẳng',
-        'Mọi cấp học'
-      );
-    }
-
-    suggestions.push({
-      category: 'Cấp học/Lớp',
-      icon: <GraduationCap size={16} />,
-      items: gradeSuggestions.slice(0, 5)
-    });
-  }
-
-  // ==========================================
-  // GỢI Ý VỀ MỤC TIÊU
-  // ==========================================
-  const goalSuggestions: string[] = [];
-
-  if (lowerIdea.includes('kiểm tra') || lowerIdea.includes('bài cũ')) {
-    goalSuggestions.push(
-      'Ôn tập bài cũ đầu giờ',
-      'Kiểm tra 15 phút',
-      'Kiểm tra 1 tiết',
-      'Luyện tập tại nhà',
-      'Thi thử online'
-    );
-  } else if (lowerIdea.includes('quản lý')) {
-    goalSuggestions.push(
-      'Theo dõi công việc hàng ngày',
-      'Báo cáo tuần/tháng',
-      'Quản lý dự án',
-      'Theo dõi KPI'
-    );
-  } else if (lowerIdea.includes('game')) {
-    goalSuggestions.push(
-      'Giải trí vui vẻ',
-      'Học qua trò chơi',
-      'Thi đua với bạn bè',
-      'Rèn luyện tư duy'
-    );
-  } else {
-    goalSuggestions.push(
-      'Tăng năng suất',
-      'Tiết kiệm thời gian',
-      'Dễ dàng sử dụng',
-      'Miễn phí, không cần đăng ký'
-    );
-  }
-
-  suggestions.push({
-    category: 'Mục tiêu sử dụng',
-    icon: <Target size={16} />,
-    items: goalSuggestions.slice(0, 5)
-  });
-
-  return suggestions;
-}
-
 export default function InputSection({ onGenerate, isLoading }: InputSectionProps) {
   const [idea, setIdea] = useState('');
-  const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
+  const [enhancedIdea, setEnhancedIdea] = useState('');
+  const [ideaSummary, setIdeaSummary] = useState('');
+  const [isEnhancing, setIsEnhancing] = useState(false);
+  const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
+  const [isIdeaEnhanced, setIsIdeaEnhanced] = useState(false);
+  const [aiSuggestions, setAiSuggestions] = useState<AISuggestionsResult | null>(null);
   const [selectedSuggestions, setSelectedSuggestions] = useState<Set<string>>(new Set());
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [enhanceError, setEnhanceError] = useState('');
 
-  // Debounce phân tích gợi ý
+  // Reset khi ý tưởng thay đổi
   useEffect(() => {
-    const timer = setTimeout(() => {
-      if (idea.trim().length >= 5) {
-        const newSuggestions = analyzeSuggestions(idea);
-        setSuggestions(newSuggestions);
-        setShowSuggestions(true);
-      } else {
-        setSuggestions([]);
-        setShowSuggestions(false);
-      }
-    }, 300);
+    if (enhancedIdea && idea !== enhancedIdea) {
+      setIsIdeaEnhanced(false);
+      setAiSuggestions(null);
+      setShowSuggestions(false);
+      setSelectedSuggestions(new Set());
+      setEnhancedIdea('');
+      setIdeaSummary('');
+    }
+  }, [idea, enhancedIdea]);
 
-    return () => clearTimeout(timer);
-  }, [idea]);
+  // Hoàn thiện ý tưởng với AI
+  const handleEnhanceIdea = async () => {
+    const apiKey = getApiKey();
+    if (!apiKey) {
+      setEnhanceError('Vui lòng cấu hình API Key trước khi sử dụng tính năng này');
+      return;
+    }
+
+    if (!idea.trim()) {
+      setEnhanceError('Vui lòng nhập ý tưởng trước');
+      return;
+    }
+
+    setEnhanceError('');
+    setIsEnhancing(true);
+
+    try {
+      const result = await enhanceIdeaWithAI(idea.trim(), apiKey);
+      setEnhancedIdea(result.enhancedIdea);
+      setIdeaSummary(result.summary);
+      setIdea(result.enhancedIdea);
+      setIsIdeaEnhanced(true);
+
+      // Sau khi hoàn thiện ý tưởng, lấy gợi ý AI
+      await loadAISuggestions(result.enhancedIdea);
+    } catch (error) {
+      console.error('Error enhancing idea:', error);
+      setEnhanceError('Có lỗi khi hoàn thiện ý tưởng. Vui lòng thử lại.');
+    } finally {
+      setIsEnhancing(false);
+    }
+  };
+
+  // Lấy gợi ý AI chuyên sâu
+  const loadAISuggestions = async (ideaText: string) => {
+    const apiKey = getApiKey();
+    if (!apiKey) return;
+
+    setIsLoadingSuggestions(true);
+    try {
+      const suggestions = await getAISuggestions(ideaText, apiKey);
+      setAiSuggestions(suggestions);
+      setShowSuggestions(true);
+    } catch (error) {
+      console.error('Error getting AI suggestions:', error);
+    } finally {
+      setIsLoadingSuggestions(false);
+    }
+  };
+
+  // Làm mới gợi ý AI
+  const handleRefreshSuggestions = async () => {
+    if (idea.trim()) {
+      await loadAISuggestions(idea.trim());
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (idea.trim() && !isLoading) {
-      // Gộp ý tưởng với các gợi ý đã chọn
       let finalIdea = idea.trim();
 
       if (selectedSuggestions.size > 0) {
@@ -283,12 +122,55 @@ export default function InputSection({ onGenerate, isLoading }: InputSectionProp
     });
   }, []);
 
+  // Chuyển đổi AI suggestions thành format hiển thị
+  const getSuggestionGroups = (): Suggestion[] => {
+    if (!aiSuggestions) return [];
+
+    const groups: Suggestion[] = [];
+
+    if (aiSuggestions.functions.length > 0) {
+      groups.push({
+        category: 'Chức năng',
+        icon: <Zap size={16} />,
+        items: aiSuggestions.functions
+      });
+    }
+
+    if (aiSuggestions.targetUsers.length > 0) {
+      groups.push({
+        category: 'Đối tượng sử dụng',
+        icon: <Users size={16} />,
+        items: aiSuggestions.targetUsers
+      });
+    }
+
+    if (aiSuggestions.goals.length > 0) {
+      groups.push({
+        category: 'Mục tiêu',
+        icon: <Target size={16} />,
+        items: aiSuggestions.goals
+      });
+    }
+
+    if (aiSuggestions.expectedResults.length > 0) {
+      groups.push({
+        category: 'Kết quả mong muốn',
+        icon: <Award size={16} />,
+        items: aiSuggestions.expectedResults
+      });
+    }
+
+    return groups;
+  };
+
   const exampleIdeas = [
     'App kiểm tra bài cũ môn Toán lớp 10',
     'Công cụ quản lý chi tiêu cá nhân',
     'Game đoán từ tiếng Anh cho học sinh',
     'Quiz trắc nghiệm Vật lý THPT'
   ];
+
+  const suggestionGroups = getSuggestionGroups();
 
   return (
     <div className="input-section">
@@ -307,16 +189,68 @@ export default function InputSection({ onGenerate, isLoading }: InputSectionProp
             onChange={(e) => setIdea(e.target.value)}
             placeholder="Nhập ý tưởng app của bạn... (Ví dụ: App quiz trắc nghiệm Toán lớp 10, công cụ quản lý, game học tập...)"
             rows={4}
-            disabled={isLoading}
+            disabled={isLoading || isEnhancing}
           />
+
+          {ideaSummary && (
+            <div className="idea-summary">
+              <Brain size={14} />
+              <span>{ideaSummary}</span>
+            </div>
+          )}
         </div>
 
-        {/* Panel gợi ý thông minh */}
-        {showSuggestions && suggestions.length > 0 && !isLoading && (
-          <div className="suggestions-panel">
+        {enhanceError && (
+          <div className="enhance-error">
+            <span>{enhanceError}</span>
+          </div>
+        )}
+
+        {/* Nút hoàn thiện ý tưởng */}
+        {!isIdeaEnhanced && idea.trim().length >= 5 && (
+          <button
+            type="button"
+            className="enhance-btn"
+            onClick={handleEnhanceIdea}
+            disabled={isEnhancing || isLoading}
+          >
+            {isEnhancing ? (
+              <>
+                <Loader2 className="icon spinning" />
+                Đang hoàn thiện...
+              </>
+            ) : (
+              <>
+                <Brain className="icon" />
+                Hoàn thiện ý tưởng với AI
+              </>
+            )}
+          </button>
+        )}
+
+        {/* Loading gợi ý AI */}
+        {isLoadingSuggestions && (
+          <div className="loading-suggestions">
+            <Loader2 className="icon spinning" />
+            <span>Đang phân tích gợi ý chuyên sâu...</span>
+          </div>
+        )}
+
+        {/* Panel gợi ý AI chuyên sâu */}
+        {showSuggestions && suggestionGroups.length > 0 && !isLoading && !isEnhancing && (
+          <div className="suggestions-panel ai-suggestions">
             <div className="suggestions-header">
               <Lightbulb size={18} />
-              <span>Gợi ý để hoàn thiện ý tưởng</span>
+              <span>Gợi ý AI chuyên sâu</span>
+              <button
+                type="button"
+                className="refresh-suggestions"
+                onClick={handleRefreshSuggestions}
+                disabled={isLoadingSuggestions}
+                title="Làm mới gợi ý"
+              >
+                <RefreshCw size={14} className={isLoadingSuggestions ? 'spinning' : ''} />
+              </button>
               <button
                 type="button"
                 className="close-suggestions"
@@ -327,7 +261,7 @@ export default function InputSection({ onGenerate, isLoading }: InputSectionProp
             </div>
 
             <div className="suggestions-content">
-              {suggestions.map((group, groupIndex) => (
+              {suggestionGroups.map((group, groupIndex) => (
                 <div key={groupIndex} className="suggestion-group">
                   <div className="suggestion-group-header">
                     {group.icon}
@@ -375,7 +309,7 @@ export default function InputSection({ onGenerate, isLoading }: InputSectionProp
         <button
           type="submit"
           className="generate-btn"
-          disabled={!idea.trim() || isLoading}
+          disabled={!idea.trim() || isLoading || isEnhancing}
         >
           {isLoading ? (
             <>

@@ -125,28 +125,103 @@ function detectCategory(idea: string): { category: string; config: typeof catego
 }
 
 // ==========================================
-// BƯỚC 2: TRÍCH XUẤT TÍNH NĂNG CỐT LÕI
+// BƯỚC 2: PARSE USER SELECTIONS (GỢI Ý AI ĐÃ CHỌN)
 // ==========================================
-function extractFeatures(idea: string, category: string): { explicit: string[]; implicit: string[]; difficult: string[] } {
-    const explicitFeatures: string[] = [];
-    const implicitFeatures: string[] = [];
-    const difficultFeatures: string[] = [];
+interface UserSelections {
+    functions: string[];       // Chức năng đã chọn
+    targetUsers: string[];     // Đối tượng sử dụng
+    goals: string[];           // Mục tiêu
+    expectedResults: string[]; // Kết quả mong muốn
+    customRequirements: string[]; // Yêu cầu riêng
+}
 
-    const lowerIdea = idea.toLowerCase();
+// Parse và phân loại các gợi ý AI đã chọn từ ý tưởng
+function parseUserSelections(idea: string): UserSelections {
+    const selections: UserSelections = {
+        functions: [],
+        targetUsers: [],
+        goals: [],
+        expectedResults: [],
+        customRequirements: []
+    };
 
     // Parse thông tin bổ sung từ gợi ý AI
     const additionalInfoMatch = idea.match(/Thông tin bổ sung:\s*(.+?)(?:\n|$)/i);
     if (additionalInfoMatch) {
-        const suggestions = additionalInfoMatch[1].split(',').map(s => s.trim()).filter(s => s);
-        explicitFeatures.push(...suggestions);
+        const items = additionalInfoMatch[1].split(',').map(s => s.trim()).filter(s => s);
+
+        // Phân loại dựa trên nội dung
+        items.forEach(item => {
+            const lowerItem = item.toLowerCase();
+
+            // Phát hiện Đối tượng sử dụng
+            if (lowerItem.includes('giáo viên') || lowerItem.includes('học sinh') ||
+                lowerItem.includes('sinh viên') || lowerItem.includes('người dùng') ||
+                lowerItem.includes('quản lý') || lowerItem.includes('nhân viên') ||
+                lowerItem.includes('khách hàng') || lowerItem.includes('người chơi') ||
+                lowerItem.includes('phụ huynh') || lowerItem.includes('nhà trường')) {
+                selections.targetUsers.push(item);
+            }
+            // Phát hiện Mục tiêu (thường bắt đầu bằng động từ hoặc có từ khóa mục tiêu)
+            else if (lowerItem.includes('nâng cao') || lowerItem.includes('cải thiện') ||
+                lowerItem.includes('tăng cường') || lowerItem.includes('phát triển') ||
+                lowerItem.includes('hỗ trợ') || lowerItem.includes('giúp') ||
+                lowerItem.includes('tạo động lực') || lowerItem.includes('thúc đẩy')) {
+                selections.goals.push(item);
+            }
+            // Phát hiện Kết quả mong muốn
+            else if (lowerItem.includes('kết quả') || lowerItem.includes('đạt được') ||
+                lowerItem.includes('hoàn thành') || lowerItem.includes('thành thạo') ||
+                lowerItem.includes('điểm số') || lowerItem.includes('tiến bộ') ||
+                lowerItem.includes('tiết kiệm') || lowerItem.includes('hiệu quả')) {
+                selections.expectedResults.push(item);
+            }
+            // Mặc định là Chức năng
+            else {
+                selections.functions.push(item);
+            }
+        });
     }
 
     // Parse yêu cầu riêng của người dùng
     const customReqMatch = idea.match(/Yêu cầu riêng của người dùng:\s*(.+?)(?:\n|$)/i);
     if (customReqMatch) {
         const customReqs = customReqMatch[1].split(',').map(s => s.trim()).filter(s => s);
-        explicitFeatures.push(...customReqs);
+        selections.customRequirements.push(...customReqs);
     }
+
+    return selections;
+}
+
+// Lấy ý tưởng gốc (bỏ phần thông tin bổ sung)
+function getCleanIdea(idea: string): string {
+    return idea
+        .replace(/\n\nThông tin bổ sung:.*$/is, '')
+        .replace(/\n\nYêu cầu riêng của người dùng:.*$/is, '')
+        .trim();
+}
+
+// ==========================================
+// BƯỚC 3: TRÍCH XUẤT TÍNH NĂNG CỐT LÕI
+// ==========================================
+function extractFeatures(idea: string, category: string): {
+    explicit: string[];
+    implicit: string[];
+    difficult: string[];
+    userSelections: UserSelections;
+} {
+    const explicitFeatures: string[] = [];
+    const implicitFeatures: string[] = [];
+    const difficultFeatures: string[] = [];
+
+    const lowerIdea = idea.toLowerCase();
+
+    // Parse các lựa chọn của người dùng
+    const userSelections = parseUserSelections(idea);
+
+    // Thêm các chức năng đã chọn vào explicit features
+    explicitFeatures.push(...userSelections.functions);
+    explicitFeatures.push(...userSelections.customRequirements);
 
     // Tính năng explicit từ keywords
     const featurePatterns = [
@@ -226,7 +301,7 @@ function extractFeatures(idea: string, category: string): { explicit: string[]; 
         difficultFeatures.push('Âm thanh/Sound effects → Giải pháp: Thêm file audio hoặc sử dụng Web Audio API');
     }
 
-    return { explicit: explicitFeatures, implicit: implicitFeatures, difficult: difficultFeatures };
+    return { explicit: explicitFeatures, implicit: implicitFeatures, difficult: difficultFeatures, userSelections };
 }
 
 // ==========================================
@@ -794,12 +869,22 @@ Bạn là một **Chuyên gia Kiến trúc Phần mềm (Software Architect)** v
 ## 🎯 MÔ TẢ DỰ ÁN
 
 ### Ý tưởng gốc:
-${idea}
+${getCleanIdea(idea)}
 
 ### Phân loại:
 - **Thể loại:** ${category}
-- **Đối tượng sử dụng:** ${config.targetUsers.join(', ')}
-- **Mục đích:** ${config.purpose}
+- **Đối tượng sử dụng:** ${features.userSelections.targetUsers.length > 0
+            ? features.userSelections.targetUsers.join(', ')
+            : config.targetUsers.join(', ')}
+- **Mục đích:** ${features.userSelections.goals.length > 0
+            ? features.userSelections.goals.join('; ')
+            : config.purpose}
+
+${features.userSelections.expectedResults.length > 0 ? `### Kết quả mong muốn:
+${features.userSelections.expectedResults.map((r, i) => `${i + 1}. ✅ ${r}`).join('\n')}` : ''}
+
+${features.userSelections.customRequirements.length > 0 ? `### Yêu cầu đặc biệt (Người dùng chỉ định):
+${features.userSelections.customRequirements.map((r, i) => `${i + 1}. ⭐ ${r}`).join('\n')}` : ''}
 
 ---
 

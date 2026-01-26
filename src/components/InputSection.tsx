@@ -261,8 +261,8 @@ export default function InputSection({ onGenerate, isLoading }: InputSectionProp
           </button>
         )}
 
-        {/* Nút lấy gợi ý chuyên sâu - hiện sau khi đã hoàn thiện ý tưởng và chưa có gợi ý */}
-        {isIdeaEnhanced && !showSuggestions && !isLoadingSuggestions && (
+        {/* Nút lấy gợi ý chuyên sâu - hiện ngay khi có ý tưởng đủ dài */}
+        {idea.trim().length >= 5 && !showSuggestions && !isLoadingSuggestions && !isEnhancing && (
           <button
             type="button"
             className="get-suggestions-btn"

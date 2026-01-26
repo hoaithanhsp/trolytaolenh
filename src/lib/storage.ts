@@ -91,3 +91,34 @@ export function getInstructionById(id: string): Instruction | null {
     const instructions = getInstructions();
     return instructions.find(i => i.id === id) || null;
 }
+
+// ===== API KEY MANAGEMENT =====
+const API_KEY_STORAGE = 'gemini_api_key';
+
+// Get API key from localStorage
+export function getApiKey(): string | null {
+    try {
+        return localStorage.getItem(API_KEY_STORAGE);
+    } catch (error) {
+        console.error('Error reading API key from localStorage:', error);
+        return null;
+    }
+}
+
+// Save API key to localStorage
+export function saveApiKey(apiKey: string): void {
+    try {
+        localStorage.setItem(API_KEY_STORAGE, apiKey);
+    } catch (error) {
+        console.error('Error saving API key to localStorage:', error);
+    }
+}
+
+// Remove API key from localStorage
+export function removeApiKey(): void {
+    try {
+        localStorage.removeItem(API_KEY_STORAGE);
+    } catch (error) {
+        console.error('Error removing API key from localStorage:', error);
+    }
+}

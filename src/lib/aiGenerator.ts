@@ -1068,6 +1068,150 @@ Trả về System Instruction đã cải thiện:`;
     };
 }
 
+// ==========================================
+// HOÀN THIỆN Ý TƯỞNG VỚI AI
+// ==========================================
+interface EnhancedIdea {
+    originalIdea: string;
+    enhancedIdea: string;
+    summary: string;
+}
+
+interface AISuggestion {
+    category: string;
+    icon: string;
+    items: string[];
+}
+
+interface AISuggestionsResult {
+    functions: string[];
+    targetUsers: string[];
+    goals: string[];
+    expectedResults: string[];
+}
+
+// Hoàn thiện ý tưởng với AI
+export async function enhanceIdeaWithAI(
+    idea: string,
+    apiKey: string,
+    preferredModel?: string,
+    onProgress?: ProgressCallback
+): Promise<EnhancedIdea> {
+    const model = preferredModel || AI_MODELS[0];
+
+    const prompt = `Bạn là chuyên gia hoàn thiện ý tưởng ứng dụng. Hãy đọc ý tưởng ban đầu và hoàn thiện thành mô tả chi tiết, rõ ràng hơn.
+
+Ý tưởng ban đầu: "${idea}"
+
+YÊU CẦU:
+1. Giữ nguyên ý nghĩa ban đầu
+2. Thêm chi tiết cụ thể nếu thiếu
+3. Làm rõ mục đích sử dụng
+4. Viết ngắn gọn, súc tích (tối đa 2-3 câu)
+
+Trả về JSON với format CHÍNH XÁC như sau (không có markdown):
+{
+    "enhancedIdea": "Mô tả ý tưởng đã hoàn thiện",
+    "summary": "Tóm tắt ngắn 1 câu về app"
+}`;
+
+    try {
+        onProgress?.({
+            step: 1,
+            totalSteps: 1,
+            currentModel: model,
+            status: 'running',
+            message: 'Đang hoàn thiện ý tưởng với AI...'
+        });
+
+        const result = await callWithFallback(prompt, apiKey, model, onProgress, { step: 1, totalSteps: 1 });
+
+        // Parse JSON từ kết quả
+        const jsonMatch = result.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+            const parsed = JSON.parse(jsonMatch[0]);
+            return {
+                originalIdea: idea,
+                enhancedIdea: parsed.enhancedIdea || idea,
+                summary: parsed.summary || ''
+            };
+        }
+
+        return {
+            originalIdea: idea,
+            enhancedIdea: idea,
+            summary: ''
+        };
+    } catch (error) {
+        console.error('Error enhancing idea:', error);
+        throw error;
+    }
+}
+
+// Lấy gợi ý AI chuyên sâu
+export async function getAISuggestions(
+    idea: string,
+    apiKey: string,
+    preferredModel?: string,
+    onProgress?: ProgressCallback
+): Promise<AISuggestionsResult> {
+    const model = preferredModel || AI_MODELS[0];
+
+    const prompt = `Bạn là chuyên gia phân tích yêu cầu ứng dụng. Dựa trên ý tưởng sau, hãy phân tích và đưa ra gợi ý chi tiết.
+
+Ý tưởng: "${idea}"
+
+Hãy phân tích và trả về JSON với format CHÍNH XÁC (không có markdown):
+{
+    "functions": ["Chức năng 1", "Chức năng 2", "Chức năng 3", "Chức năng 4", "Chức năng 5"],
+    "targetUsers": ["Đối tượng 1", "Đối tượng 2", "Đối tượng 3"],
+    "goals": ["Mục tiêu 1", "Mục tiêu 2", "Mục tiêu 3"],
+    "expectedResults": ["Kết quả 1", "Kết quả 2", "Kết quả 3"]
+}
+
+YÊU CẦU:
+1. functions: 5-8 chức năng PHÙ HỢP và CỤ THỂ cho ý tưởng này
+2. targetUsers: 2-4 đối tượng sử dụng chính
+3. goals: 3-5 mục tiêu chính của ứng dụng
+4. expectedResults: 3-5 kết quả mong muốn đạt được khi sử dụng app
+5. Mỗi item là câu ngắn gọn, dễ hiểu
+6. Phù hợp với ngữ cảnh Việt Nam`;
+
+    try {
+        onProgress?.({
+            step: 1,
+            totalSteps: 1,
+            currentModel: model,
+            status: 'running',
+            message: 'Đang phân tích gợi ý với AI...'
+        });
+
+        const result = await callWithFallback(prompt, apiKey, model, onProgress, { step: 1, totalSteps: 1 });
+
+        // Parse JSON từ kết quả
+        const jsonMatch = result.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+            const parsed = JSON.parse(jsonMatch[0]);
+            return {
+                functions: parsed.functions || [],
+                targetUsers: parsed.targetUsers || [],
+                goals: parsed.goals || [],
+                expectedResults: parsed.expectedResults || []
+            };
+        }
+
+        return {
+            functions: [],
+            targetUsers: [],
+            goals: [],
+            expectedResults: []
+        };
+    } catch (error) {
+        console.error('Error getting AI suggestions:', error);
+        throw error;
+    }
+}
+
 // Export
 export { AI_MODELS };
-export type { GeneratedResult, GenerationProgress, ProgressCallback };
+export type { GeneratedResult, GenerationProgress, ProgressCallback, EnhancedIdea, AISuggestionsResult };

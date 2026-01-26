@@ -1077,12 +1077,6 @@ interface EnhancedIdea {
     summary: string;
 }
 
-interface AISuggestion {
-    category: string;
-    icon: string;
-    items: string[];
-}
-
 interface AISuggestionsResult {
     functions: string[];
     targetUsers: string[];

@@ -90,9 +90,7 @@ export default function InputSection({ onGenerate, isLoading }: InputSectionProp
       setIdeaSummary(result.summary);
       setIdea(result.enhancedIdea);
       setIsIdeaEnhanced(true);
-
-      // Sau khi hoàn thiện ý tưởng, lấy gợi ý AI
-      await loadAISuggestions(result.enhancedIdea);
+      // Dừng lại để giáo viên tùy chỉnh, KHÔNG tự động lấy gợi ý
     } catch (error) {
       console.error('Error enhancing idea:', error);
       setEnhanceError('Có lỗi khi hoàn thiện ý tưởng. Vui lòng thử lại.');
@@ -260,6 +258,19 @@ export default function InputSection({ onGenerate, isLoading }: InputSectionProp
                 Hoàn thiện ý tưởng với AI
               </>
             )}
+          </button>
+        )}
+
+        {/* Nút lấy gợi ý chuyên sâu - hiện sau khi đã hoàn thiện ý tưởng và chưa có gợi ý */}
+        {isIdeaEnhanced && !showSuggestions && !isLoadingSuggestions && (
+          <button
+            type="button"
+            className="get-suggestions-btn"
+            onClick={() => loadAISuggestions(idea.trim())}
+            disabled={isLoading}
+          >
+            <Lightbulb className="icon" />
+            Lấy gợi ý chuyên sâu từ AI
           </button>
         )}
 
@@ -431,7 +442,7 @@ export default function InputSection({ onGenerate, isLoading }: InputSectionProp
           ) : (
             <>
               <Sparkles className="icon" />
-              Tạo System Instruction
+              Tạo lệnh lên ai.studio
               {selectedSuggestions.size > 0 && (
                 <span className="badge">{selectedSuggestions.size}</span>
               )}

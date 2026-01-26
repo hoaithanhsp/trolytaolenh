@@ -220,7 +220,7 @@ export default function InputSection({ onGenerate, isLoading }: InputSectionProp
           <textarea
             value={idea}
             onChange={(e) => setIdea(e.target.value)}
-            placeholder="Nhập ý tưởng app của bạn... (Ví dụ: App quiz trắc nghiệm Toán lớp 10, công cụ quản lý, game học tập...)"
+            placeholder="Viết ý tưởng của bạn vào đây..."
             rows={4}
             disabled={isLoading || isEnhancing}
           />

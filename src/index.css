@@ -1394,3 +1394,141 @@ body {
     text-align: center;
   }
 }
+
+/* ===== ENHANCE IDEA BUTTON ===== */
+.enhance-btn {
+  width: 100%;
+  padding: 14px 20px;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  transition: all 0.3s;
+  margin-bottom: 15px;
+  font-family: inherit;
+}
+
+.enhance-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(16, 185, 129, 0.4);
+}
+
+.enhance-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.enhance-btn .icon {
+  width: 18px;
+  height: 18px;
+}
+
+/* ===== IDEA SUMMARY ===== */
+.idea-summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+  border: 1px solid #86efac;
+  border-radius: 8px;
+  margin-top: 12px;
+  font-size: 13px;
+  color: #166534;
+}
+
+.idea-summary svg {
+  flex-shrink: 0;
+  color: #22c55e;
+}
+
+/* ===== ENHANCE ERROR ===== */
+.enhance-error {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin-bottom: 15px;
+  color: #dc2626;
+  font-size: 14px;
+}
+
+/* ===== LOADING SUGGESTIONS ===== */
+.loading-suggestions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 20px;
+  background: #f0f9ff;
+  border: 2px dashed #93c5fd;
+  border-radius: 12px;
+  margin-bottom: 15px;
+  color: #3b82f6;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.loading-suggestions .icon {
+  width: 18px;
+  height: 18px;
+}
+
+/* ===== AI SUGGESTIONS PANEL ===== */
+.ai-suggestions {
+  border: 2px solid #86efac;
+  background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+}
+
+.ai-suggestions .suggestions-header {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+}
+
+.ai-suggestions .suggestion-group-header svg {
+  color: #10b981;
+}
+
+.ai-suggestions .suggestion-chip:hover {
+  border-color: #10b981;
+  background: #f0fdf4;
+}
+
+.ai-suggestions .suggestion-chip.selected {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+}
+
+.ai-suggestions .selected-count {
+  color: #059669;
+}
+
+/* ===== REFRESH BUTTON ===== */
+.refresh-suggestions {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  border-radius: 6px;
+  padding: 5px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  transition: all 0.2s;
+  margin-left: auto;
+  margin-right: 8px;
+}
+
+.refresh-suggestions:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.refresh-suggestions:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

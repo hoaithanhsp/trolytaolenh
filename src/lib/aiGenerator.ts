@@ -134,6 +134,20 @@ function extractFeatures(idea: string, category: string): { explicit: string[]; 
 
     const lowerIdea = idea.toLowerCase();
 
+    // Parse thông tin bổ sung từ gợi ý AI
+    const additionalInfoMatch = idea.match(/Thông tin bổ sung:\s*(.+?)(?:\n|$)/i);
+    if (additionalInfoMatch) {
+        const suggestions = additionalInfoMatch[1].split(',').map(s => s.trim()).filter(s => s);
+        explicitFeatures.push(...suggestions);
+    }
+
+    // Parse yêu cầu riêng của người dùng
+    const customReqMatch = idea.match(/Yêu cầu riêng của người dùng:\s*(.+?)(?:\n|$)/i);
+    if (customReqMatch) {
+        const customReqs = customReqMatch[1].split(',').map(s => s.trim()).filter(s => s);
+        explicitFeatures.push(...customReqs);
+    }
+
     // Tính năng explicit từ keywords
     const featurePatterns = [
         { pattern: /upload\s*(pdf|excel|file)/i, feature: 'Upload file' },

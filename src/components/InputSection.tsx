@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Sparkles, Loader2, Lightbulb, Plus, X, Users, Target, Zap, Award, Brain, RefreshCw } from 'lucide-react';
+import { Sparkles, Loader2, Lightbulb, Plus, X, Users, Target, Zap, Award, Brain, RefreshCw, Edit3 } from 'lucide-react';
 import { enhanceIdeaWithAI, getAISuggestions } from '../lib/aiGenerator';
 import type { AISuggestionsResult } from '../lib/aiGenerator';
 import { getApiKey } from '../lib/storage';
@@ -27,6 +27,11 @@ export default function InputSection({ onGenerate, isLoading }: InputSectionProp
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [enhanceError, setEnhanceError] = useState('');
 
+  // State cho yêu cầu tùy chỉnh
+  const [customInput, setCustomInput] = useState('');
+  const [customRequirements, setCustomRequirements] = useState<string[]>([]);
+  const [showCustomInput, setShowCustomInput] = useState(false);
+
   // Reset khi ý tưởng thay đổi
   useEffect(() => {
     if (enhancedIdea && idea !== enhancedIdea) {
@@ -36,8 +41,32 @@ export default function InputSection({ onGenerate, isLoading }: InputSectionProp
       setSelectedSuggestions(new Set());
       setEnhancedIdea('');
       setIdeaSummary('');
+      setCustomRequirements([]);
+      setCustomInput('');
+      setShowCustomInput(false);
     }
   }, [idea, enhancedIdea]);
+
+  // Thêm yêu cầu tùy chỉnh
+  const handleAddCustomRequirement = () => {
+    if (customInput.trim()) {
+      const newReq = customInput.trim();
+      setCustomRequirements(prev => [...prev, newReq]);
+      setSelectedSuggestions(prev => new Set([...prev, newReq]));
+      setCustomInput('');
+      setShowCustomInput(false);
+    }
+  };
+
+  // Xóa yêu cầu tùy chỉnh
+  const handleRemoveCustomRequirement = (req: string) => {
+    setCustomRequirements(prev => prev.filter(r => r !== req));
+    setSelectedSuggestions(prev => {
+      const newSet = new Set(prev);
+      newSet.delete(req);
+      return newSet;
+    });
+  };
 
   // Hoàn thiện ý tưởng với AI
   const handleEnhanceIdea = async () => {
@@ -101,9 +130,15 @@ export default function InputSection({ onGenerate, isLoading }: InputSectionProp
     if (idea.trim() && !isLoading) {
       let finalIdea = idea.trim();
 
+      // Thêm các gợi ý đã chọn
       if (selectedSuggestions.size > 0) {
         const additionalInfo = Array.from(selectedSuggestions).join(', ');
         finalIdea += `\n\nThông tin bổ sung: ${additionalInfo}`;
+      }
+
+      // Thêm yêu cầu tùy chỉnh
+      if (customRequirements.length > 0) {
+        finalIdea += `\n\nYêu cầu riêng của người dùng: ${customRequirements.join(', ')}`;
       }
 
       await onGenerate(finalIdea);
@@ -287,6 +322,83 @@ export default function InputSection({ onGenerate, isLoading }: InputSectionProp
                   </div>
                 </div>
               ))}
+
+              {/* Yêu cầu tùy chỉnh của người dùng */}
+              <div className="suggestion-group custom-requirements-group">
+                <div className="suggestion-group-header">
+                  <Edit3 size={16} />
+                  <span>Yêu cầu riêng của bạn</span>
+                </div>
+
+                {/* Hiển thị các yêu cầu đã thêm */}
+                {customRequirements.length > 0 && (
+                  <div className="suggestion-items custom-items">
+                    {customRequirements.map((req, index) => (
+                      <button
+                        key={index}
+                        type="button"
+                        className="suggestion-chip selected custom-chip"
+                        onClick={() => handleRemoveCustomRequirement(req)}
+                        title="Click để xóa"
+                      >
+                        {req}
+                        <X size={12} />
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+                {/* Input thêm yêu cầu mới */}
+                {showCustomInput ? (
+                  <div className="custom-input-wrapper">
+                    <input
+                      type="text"
+                      value={customInput}
+                      onChange={(e) => setCustomInput(e.target.value)}
+                      placeholder="Nhập yêu cầu của bạn..."
+                      className="custom-input"
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          handleAddCustomRequirement();
+                        } else if (e.key === 'Escape') {
+                          setShowCustomInput(false);
+                          setCustomInput('');
+                        }
+                      }}
+                      autoFocus
+                    />
+                    <button
+                      type="button"
+                      className="add-custom-btn"
+                      onClick={handleAddCustomRequirement}
+                      disabled={!customInput.trim()}
+                    >
+                      <Plus size={14} />
+                      Thêm
+                    </button>
+                    <button
+                      type="button"
+                      className="cancel-custom-btn"
+                      onClick={() => {
+                        setShowCustomInput(false);
+                        setCustomInput('');
+                      }}
+                    >
+                      <X size={14} />
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    className="show-custom-input-btn"
+                    onClick={() => setShowCustomInput(true)}
+                  >
+                    <Plus size={14} />
+                    Thêm yêu cầu riêng
+                  </button>
+                )}
+              </div>
             </div>
 
             {selectedSuggestions.size > 0 && (

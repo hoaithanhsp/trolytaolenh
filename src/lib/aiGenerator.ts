@@ -344,59 +344,7 @@ function getTechStack(category: string, features: { explicit: string[]; implicit
 // ==========================================
 // BƯỚC 4: THIẾT KẾ UI/UX
 // ==========================================
-function getUIDesign(category: string, config: typeof categoryConfig['Education']): string {
-    const layoutDescriptions: Record<string, string> = {
-        'flashcard': 'Giao diện flashcard - 1 câu hỏi chiếm toàn màn hình, chữ to, dễ đọc',
-        'dashboard': 'Dashboard với sidebar bên trái + main content bên phải, có summary cards ở trên',
-        'form-preview': 'Form input bên trái + Preview kết quả bên phải (split screen)',
-        'game-screen': 'Full screen game với HUD (điểm, timer) ở trên, content ở giữa, controls ở dưới',
-        'standard': 'Layout đơn giản với header, main content, footer'
-    };
 
-    return `
-### YÊU CẦU GIAO DIỆN (UI/UX)
-
-#### Màu sắc:
-- **Primary Color:** ${config.colors.primary}
-- **Secondary Color:** ${config.colors.secondary}
-- **Background Gradient:** ${config.colors.gradient}
-- **Text Dark:** #1a202c
-- **Text Light:** #718096
-- **Success:** #48bb78
-- **Error:** #f56565
-- **Warning:** #ed8936
-
-#### Bố cục (Layout):
-- **Kiểu:** ${layoutDescriptions[config.layout] || layoutDescriptions['standard']}
-- **Container:** max-width: 1200px, margin: 0 auto
-- **Cards:** border-radius: 16px, box-shadow: 0 10px 40px rgba(0,0,0,0.1)
-- **Spacing:** padding: 20-40px, margin: 15-30px
-
-#### Typography:
-- **Font Family:** 'Be Vietnam Pro', sans-serif
-- **Tiêu đề (H1):** 28-36px, font-weight: 700
-- **Tiêu đề phụ (H2):** 20-24px, font-weight: 600
-- **Nội dung:** 16-18px, line-height: 1.6
-- **Caption:** 14px, color: #718096
-
-#### Buttons:
-- **Primary:** Background gradient, color: white, padding: 12px 24px, border-radius: 8px
-- **Secondary:** Background: transparent, border: 2px solid primary, color: primary
-- **Hover:** transform: translateY(-2px), box-shadow tăng
-- **Disabled:** opacity: 0.6, cursor: not-allowed
-
-#### Responsive:
-- **Desktop:** >= 1024px (full layout)
-- **Tablet:** 768px - 1023px (sidebar collapsed)
-- **Mobile:** < 768px (single column, stacked)
-
-#### Animations:
-- **fadeIn:** opacity 0→1, translateY 20px→0, duration: 0.5s
-- **slideInRight:** translateX 100%→0, duration: 0.3s
-- **pulse:** scale 1→1.05→1, duration: 0.2s (cho buttons)
-- **shake:** translateX -5px→5px (cho errors)
-`;
-}
 
 // ==========================================
 // BƯỚC 5: XÂY DỰNG LOGIC XỬ LÝ
@@ -817,17 +765,18 @@ function generateHTMLTemplate(idea: string, category: string, config: typeof cat
 }
 
 // ==========================================
-// BƯỚC 7: VIẾT SYSTEM INSTRUCTION HOÀN CHỈNH (LOGIC MỚI)
+// ==========================================
+// BƯỚC 7: VIẾT SYSTEM INSTRUCTION HOÀN CHỈNH (LOGIC MỚI THEO DEMO)
 // ==========================================
 function generateSystemInstruction(idea: string, category: string, config: typeof categoryConfig['Education']): string {
     const features = extractFeatures(idea, category);
-    const lowerIdea = idea.toLowerCase();
+
 
     // Tạo tiêu đề sáng tạo
     const appTitle = generateCreativeTitle(idea, category, config);
 
-    // Xác định các thư viện CDN cần dùng
-    const cdnLibraries = selectCDNLibraries(idea, category);
+    // Xác định các thư viện CDN cần dùng (đã được gọi trong generateSmartHTMLTemplate)
+
 
     // Tự động đề xuất tính năng thông minh
     const smartFeatures = inferSmartFeatures(idea, category);
@@ -835,148 +784,40 @@ function generateSystemInstruction(idea: string, category: string, config: typeo
     // Tạo template HTML phù hợp với loại app
     const htmlTemplate = generateSmartHTMLTemplate(idea, category, config, smartFeatures);
 
-    // ===== MỚI: Tạo các mô tả chi tiết =====
-    const uiSpec = generateUISpecification(category, config, features.userSelections);
-    const featureSpec = generateFeatureSpecification(category, features.userSelections, features.implicit);
-    const operationFlow = generateOperationFlow(category, features.userSelections);
+    // ===== TẠO CÁC PHẦN NỘI DUNG THEO CẤU TRÚC DEMO =====
+    const appSummary = generateAppSummary(appTitle, category, getCleanIdea(idea), smartFeatures);
+    const operationFlow = generateOperationFlowV2(category, features.userSelections);
+    const detailedFeatures = generateDetailedFeatures(category, features.userSelections, features.implicit);
+    const uiRequirements = generateUIRequirements(category, config);
+    const techRequirements = generateTechnicalRequirements(category);
+    const outputChecklist = generateOutputChecklist();
 
-    const systemInstruction = `# ${config.icon} System Instruction: ${appTitle}
+    const systemInstruction = `# ${config.icon} YÊU CẦU TẠO ỨNG DỤNG WEB: ${appTitle}
 
+${appSummary}
 ---
-
-## ⚠️ LƯU Ý QUAN TRỌNG (FLEXIBILITY & CREATIVITY)
-
-**Đây là các GỢI Ý (SUGGESTIONS), KHÔNG PHẢI QUY TẮC CỨNG NHẮC (STRICT RULES).**
-Với tư cách là một AI thông minh, bạn có toàn quyền:
-1. **Tinh chỉnh hoặc Thay đổi** cấu trúc code nếu thấy giải pháp khác tốt hơn.
-2. **Sáng tạo thêm** các tính năng cool/ngầu mà user chưa nghĩ tới.
-3. **Lựa chọn** phần nào phù hợp từ template bên dưới để đưa vào, không nhất thiết phải copy nguyên xi.
-4. **Tối ưu hóa** code theo best practices mới nhất.
-
-Mục tiêu cuối cùng: Tạo ra một ứng dụng **TỐT NHẤT CÓ THỂ** dựa trên ý tưởng của người dùng, chứ không phải một ứng dụng rập khuôn máy móc.
-
----
-
-## 📋 HƯỚNG DẪN SỬ DỤNG
-1. **Copy** toàn bộ nội dung System Instruction bên dưới
-2. Truy cập [Google AI Studio](https://aistudio.google.com/)
-3. **Dán** vào ô "System Instructions" 
-4. Nhập dữ liệu của bạn vào ô chat (danh sách câu hỏi, nội dung bài học, etc.)
-5. AI sẽ tự động tạo file HTML hoàn chỉnh.
-
----
-
-## 🎭 VAI TRÒ (Role)
-
-Bạn là một **Chuyên gia Kiến trúc Phần mềm (Software Architect)** và **Kỹ sư Sáng tạo (Creative Engineer)** cấp cao. Bạn không chỉ viết code, bạn tạo ra các trải nghiệm người dùng tuyệt vời.
-
-Chuyên môn của bạn bao gồm (nhưng không giới hạn):
-- ${category === 'Education' ? '🎓 EdTech: Biến bài học nhàm chán thành trải nghiệm thú vị' :
-            category === 'Management' ? '📊 Dashboard chuyên nghiệp: Dữ liệu phức tạp -> Giao diện trực quan' :
-                category === 'Game' ? '🎮 Gamification: Thêm yếu tố game vào mọi thứ để tăng tương tác' :
-                    category === 'Finance' ? '💰 Fintech: Bảo mật, chính xác nhưng vẫn đẹp mắt' :
-                        '🛠️ Tools: Công cụ mạnh mẽ, giải quyết vấn đề trong tích tắc'}
-- 🎨 UI/UX: Thiết kế hiện đại, clean, chú trọng motion design và micro-interactions.
-- 🇻🇳 Localized: Tối ưu hoàn hảo cho người dùng Việt Nam.
-
-**Nhiệm vụ:** Biến ý tưởng thô của người dùng thành một "Siêu Phẩm" Web App (Single File HTML).
-
----
-
-## 🎯 MÔ TẢ DỰ ÁN (CONTEXT)
-
-### Ý tưởng gốc từ người dùng:
-${getCleanIdea(idea)}
-
-### Phân tích sơ bộ (Tham khảo):
-- **Thể loại:** ${category}
-- **Đối tượng tiềm năng:** ${features.userSelections.targetUsers.length > 0
-            ? features.userSelections.targetUsers.join(', ')
-            : config.targetUsers.join(', ')}
-- **Mục đích chính:** ${features.userSelections.goals.length > 0
-            ? features.userSelections.goals.join('; ')
-            : config.purpose}
-
-${features.userSelections.expectedResults.length > 0 ? `### Kỳ vọng (Tham khảo):
-${features.userSelections.expectedResults.map((r, i) => `- ${r}`).join('\n')}` : ''}
-
-${features.userSelections.customRequirements.length > 0 ? `### Yêu cầu đặc biệt (User note):
-${features.userSelections.customRequirements.map((r, i) => `⭐ ${r}`).join('\n')}` : ''}
-
----
-
-${uiSpec}
-
----
-
-${featureSpec}
-
----
-
 ${operationFlow}
-
 ---
-
-## 🧠 TƯ DUY THIẾT KẾ (DESIGN THINKING)
-
-Đừng chỉ code ngay. Hãy suy nghĩ về các vấn đề sau trước khi bắt đầu:
-
-1. **User Experience (UX):** Làm sao để người dùng cảm thấy "sướng" khi dùng app này? (Ví dụ: Hiệu ứng khi click, âm thanh, transition mượt mà...)
-2. **Edge Cases:** Chuyện gì xảy ra nếu user nhập sai? Nếu dữ liệu rỗng? Nếu màn hình quá nhỏ? -> Hãy xử lý chúng gracefully.
-3. **Wow Factor:** Tính năng gì sẽ làm user thốt lên "Wow"? (Ví dụ: Dark mode, Confetti, 3D transform...)
-
-### Gợi ý tính năng (Bạn có thể chọn lọc hoặc thêm mới):
-${smartFeatures.map((f, i) => `- 💡 ${f}`).join('\n')}
-
+${detailedFeatures}
 ---
-
-## 🛠️ TECH STACK & LOGIC (GỢI Ý)
-
-Bạn có thể sử dụng các thư viện sau (hoặc thay đổi nếu cần thiết):
-
-\`\`\`html
-${cdnLibraries}
-\`\`\`
-
-### Gợi ý Logic xử lý:
-${category === 'Education' ? `> Kiểm tra -> Chấm điểm -> Feedback -> Lưu kết quả -> Thống kê` :
-            category === 'Management' ? `> CRUD (Create-Read-Update-Delete) -> Filter/Sort -> Export -> Charts` :
-                category === 'Game' ? `> Start -> Play Loop -> Score -> End -> Leaderboard` :
-                    `> Input -> Validate -> Process -> Output`}
-
+${uiRequirements}
 ---
-
-## 🎨 GIAO DIỆN & THẨM MỸ (AESTHETICS)
-
-Hãy tự do sáng tạo giao diện. Dưới đây là một số style gợi ý, nhưng đừng bị giới hạn bởi chúng:
-
-${getUIDesign(category, config)}
-
+${techRequirements}
 ---
+## VI. MẪU CODE HTML (TEMPLATE)
 
-## 💻 GỢI Ý MẪU CODE (THAM KHẢO)
-
-Dưới đây là một cấu trúc HTML cơ bản. **HÃY SỬA ĐỔI NÓ.** Đừng copy paste một cách mù quáng. Hãy viết lại cấu trúc HTML, CSS, JS sao cho tối ưu nhất cho bài toán cụ thể này.
+Dưới đây là cấu trúc HTML cơ bản với các thư viện cần thiết. Hãy sử dụng nó làm nền tảng và phát triển thêm:
 
 \`\`\`html
 ${htmlTemplate}
 \`\`\`
 
 ---
+${outputChecklist}
 
-## ✅ CHECKLIST TRƯỚC KHI XUẤT CODE
+## 🚀 LỜI NHẮN CHO AI
 
-- [ ] App có chạy được ngay không? (Single file HTML)
-- [ ] Giao diện có đẹp và hiện đại không?
-- [ ] Có xử lý lỗi (Error Handling) không?
-- [ ] Có responsive không?
-- [ ] Đã thêm các "gia vị" sáng tạo chưa?
-
----
-
-## 🚀 HÃY BẮT ĐẦU!
-
-Bây giờ, hãy chờ input chi tiết từ người dùng và bắt đầu "biến hình" ý tưởng thành hiện thực. Hãy làm tôi ngạc nhiên!
+Bạn là một chuyên gia lập trình web. Hãy biến ý tưởng này thành hiện thực một cách hoàn hảo nhất. Đừng chỉ viết code, hãy tạo ra một sản phẩm khiến người dùng phải thốt lên "WOW"!
 `;
 
     return systemInstruction;
@@ -1105,533 +946,212 @@ function inferSmartFeatures(idea: string, category: string): string[] {
 // BƯỚC 4A: MÔ TẢ GIAO DIỆN CHI TIẾT (UI SPECIFICATION)
 // Tích hợp từ skill: frontend-design
 // ==========================================
-function generateUISpecification(category: string, config: typeof categoryConfig['Education'], userSelections: UserSelections): string {
-    const layoutDescriptions: Record<string, { name: string; description: string; screens: string[] }> = {
-        'flashcard': {
-            name: 'Flashcard Full-Screen',
-            description: 'Giao diện flashcard - 1 câu hỏi chiếm toàn màn hình, chữ to rõ ràng, dễ đọc từ xa',
-            screens: ['Welcome Screen', 'Question Screen', 'Result Screen', 'Review Wrong Answers']
-        },
-        'dashboard': {
-            name: 'Dashboard Split Layout',
-            description: 'Dashboard với sidebar bên trái + main content bên phải, có summary cards ở trên',
-            screens: ['Dashboard Overview', 'Data Table View', 'Form Modal (Add/Edit)', 'Statistics/Charts']
-        },
-        'form-preview': {
-            name: 'Form-Preview Split',
-            description: 'Form input bên trái + Preview kết quả bên phải (split screen 50-50)',
-            screens: ['Input Form', 'Live Preview', 'Export/Download Panel']
-        },
-        'game-screen': {
-            name: 'Game Full-Screen',
-            description: 'Full screen game với HUD (điểm, timer) ở trên, game content ở giữa, controls ở dưới',
-            screens: ['Start Menu', 'Game Screen', 'Pause Modal', 'Game Over', 'Leaderboard']
-        },
-        'standard': {
-            name: 'Standard Layout',
-            description: 'Layout đơn giản với header, main content, footer',
-            screens: ['Home', 'Main Content', 'Result']
-        }
-    };
-
-    const layout = layoutDescriptions[config.layout] || layoutDescriptions['standard'];
-
-    return `
-## 📱 MÔ TẢ GIAO DIỆN CHI TIẾT (UI SPECIFICATION)
-
-### Tổng quan Layout
-- **Kiểu layout:** ${layout.name}
-- **Mô tả:** ${layout.description}
-- **Các màn hình:** ${layout.screens.join(' → ')}
-
-### Chi tiết từng màn hình
-
-#### Màn hình 1: ${layout.screens[0]}
-| Element | Mô tả | CSS Style |
-|---------|-------|-----------|
-| Container | Card trung tâm, max-width 800px | background: white, border-radius: 20px, box-shadow: 0 20px 60px rgba(0,0,0,0.15) |
-| Header | Icon + Tiêu đề app | font-size: 2.5rem, font-weight: 800, gradient text |
-| Description | Mô tả ngắn gọn mục đích app | color: #64748b, font-size: 1.1rem, margin: 1rem 0 |
-| Start Button | Nút CTA chính | gradient background, padding: 16px 40px, font-size: 1.2rem, hover: scale(1.05) + glow |
-${userSelections.targetUsers.length > 0 ? `| Target Info | Hiển thị đối tượng: ${userSelections.targetUsers.join(', ')} | badge style, subtle background |` : ''}
-
-#### Màn hình 2: ${layout.screens[1] || 'Main Screen'}
-| Element | Mô tả | CSS Style |
-|---------|-------|-----------|
-| Progress Bar | Thanh tiến độ | height: 8px, gradient fill, border-radius: 4px |
-| Content Area | Nội dung chính (câu hỏi/form/game) | padding: 2rem, font-size: 1.5rem cho content quan trọng |
-| Action Buttons | Các nút tương tác | flex gap, consistent styling |
-| Timer/Score | Hiển thị thời gian/điểm số (nếu có) | fixed position hoặc sticky header |
-
-#### Màn hình 3: ${layout.screens[2] || 'Result Screen'}
-| Element | Mô tả | CSS Style |
-|---------|-------|-----------|
-| Result Summary | Tổng kết kết quả (điểm, thời gian, đánh giá) | large font, emoji indicators, celebration animation |
-| Statistics | Biểu đồ/số liệu thống kê | Chart.js hoặc custom SVG |
-| Action Buttons | "Làm lại" + "Xem chi tiết" + "Chia sẻ" | button group, primary + secondary styles |
-| Confetti | Hiệu ứng chúc mừng (nếu kết quả tốt) | canvas-confetti library |
-
-### 🎨 Design Aesthetics (từ skill frontend-design)
-
-#### Typography (KHÔNG dùng font generic!)
-- **Display Font:** 'Quicksand' hoặc 'Nunito' (rounded, friendly) cho tiêu đề
-- **Body Font:** 'Be Vietnam Pro' hoặc 'Lexend' cho nội dung
-- **Heading:** font-weight: 700-800, letter-spacing: -0.02em
-- **Body:** font-weight: 400-500, line-height: 1.7
-
-#### Color Palette
-| Color | Value | Usage |
-|-------|-------|-------|
-| Primary | ${config.colors.primary} | CTA buttons, active states, links |
-| Secondary | ${config.colors.secondary} | Accents, secondary buttons |
-| Background | ${config.colors.gradient} | Page background, hero sections |
-| Success | #10b981 | Correct answers, success states |
-| Error | #ef4444 | Wrong answers, error states |
-| Warning | #f59e0b | Warnings, time running out |
-| Surface | white | Cards, modals |
-| Text Primary | #1e293b | Main text |
-| Text Secondary | #64748b | Captions, hints |
-
-#### Motion & Animations
-- **Page Load:** fadeInUp với stagger delay cho các elements
-- **Button Hover:** scale(1.05) + subtle shadow increase + slight translateY(-2px)
-- **Card Hover:** translate(-5px, -5px) + enhanced shadow
-- **Screen Transition:** slideInRight/slideOutLeft, duration: 0.4s ease-out
-- **Correct Answer:** pulse green glow + checkmark icon animate
-- **Wrong Answer:** shake horizontal + red flash
-- **Celebration:** canvas-confetti khi hoàn thành xuất sắc
-
-#### Spatial Composition
-- **Container:** max-width 900px cho readability
-- **Card padding:** 2rem - 3rem
-- **Element spacing:** 1rem - 2rem margins
-- **Border radius:** 16px-24px cho soft look
-- **Shadows:** layered shadows cho depth (0 10px 40px rgba(0,0,0,0.1), 0 2px 10px rgba(0,0,0,0.05))
-`;
-}
+// function generateUISpecification(category: string, config: typeof categoryConfig['Education'], userSelections: UserSelections): string {
+// ... (Code cũ đã được replacement bởi generateUIRequirements)
+// }
 
 // ==========================================
 // BƯỚC 4B: MÔ TẢ TÍNH NĂNG CHI TIẾT (FEATURE SPECIFICATION)
 // Tích hợp từ skill: app-builder
 // ==========================================
-function generateFeatureSpecification(category: string, userSelections: UserSelections, _implicitFeatures: string[]): string {
-    let featureTable = '';
-    let featureCount = 1;
+// function generateFeatureSpecification... (Deprecated)
+// function generateOperationFlow... (Deprecated)
 
-    // Chức năng từ user selections
-    if (userSelections.functions.length > 0) {
-        featureTable += `
-### Chức năng chính (đã chọn)
+// ==========================================
+// BƯỚC 4: CÁC HELPER FUNCTIONS CHO CẤU TRÚC LỆNH MỚI (V2)
+// ==========================================
 
-| # | Tính năng | Mô tả chi tiết | Input | Output | Xử lý Edge Cases |
-|---|-----------|----------------|-------|--------|------------------|
-`;
-        userSelections.functions.forEach(func => {
-            featureTable += `| ${featureCount++} | ${func} | [AI điền chi tiết dựa trên context] | [User input cần thiết] | [Kết quả trả về] | [Xử lý khi lỗi/rỗng/invalid] |\n`;
-        });
-    }
+function generateAppSummary(appTitle: string, category: string, idea: string, features: string[]): string {
+    return `## I. TỔNG QUAN DỰ ÁN
 
-    // Yêu cầu riêng
-    if (userSelections.customRequirements.length > 0) {
-        featureTable += `
-### Yêu cầu đặc biệt từ người dùng
+- **Tên ứng dụng:** ${appTitle}
+- **Thể loại:** ${category}
+- **Mục đích chính:** Xây dựng ứng dụng web single-page (SPA) chạy trực tiếp trên trình duyệt, không cần backend phức tạp.
+- **Công nghệ yêu cầu:** 
+  - HTML5, CSS3 (Modern features: Flexbox, Grid, Variables)
+  - JavaScript ES6+ (Native, không Framework nặng nếu không cần thiết)
+  - Lưu trữ dữ liệu: LocalStorage (Client-side)
+  - Thư viện hỗ trợ: FontAwesome, Google Fonts, SweetAlert2 (Toast), Chart.js (nếu cần)
 
-`;
-        userSelections.customRequirements.forEach((req, i) => {
-            featureTable += `⭐ **${i + 1}. ${req}**\n   - Mô tả: [AI phân tích và diễn giải yêu cầu này]\n   - Cách thực hiện: [AI đề xuất solution]\n\n`;
-        });
-    }
-
-    // Tính năng implied theo category
-    const categoryImplied: Record<string, string[]> = {
-        'Education': [
-            'Hiển thị câu hỏi từng câu một với số thứ tự',
-            'Highlight đáp án đúng/sai sau khi chọn',
-            'Nút "Tiếp theo" để chuyển câu',
-            'Thanh progress bar hiển thị tiến độ',
-            'Timer đếm ngược (nếu có giới hạn thời gian)',
-            'Chấm điểm tự động khi kết thúc',
-            'Thống kê chi tiết: Số câu đúng/sai, thời gian, điểm %',
-            'Option xem lại các câu trả lời sai',
-            'Lưu kết quả vào localStorage'
-        ],
-        'Management': [
-            'Bảng dữ liệu với pagination',
-            'Search realtime khi gõ',
-            'Sort theo column (asc/desc)',
-            'Filter multi-criteria',
-            'Modal Add/Edit với form validation',
-            'Confirm dialog trước khi Delete',
-            'Toast notifications cho CRUD actions',
-            'Export to Excel/PDF',
-            'LocalStorage persistence'
-        ],
-        'Game': [
-            'Start screen với menu options',
-            'Score display với animation',
-            'Lives/Hearts system (nếu phù hợp)',
-            'Level progression',
-            'Sound effects (optional toggle)',
-            'Pause/Resume functionality',
-            'Game Over screen với final score',
-            'Leaderboard (localStorage)',
-            'Play Again button'
-        ],
-        'Tool': [
-            'Input validation realtime',
-            'Live preview khi nhập',
-            'Copy to clipboard button',
-            'Download result button',
-            'Clear/Reset button',
-            'Error messages rõ ràng',
-            'Loading state khi processing',
-            'Drag & drop file upload (nếu cần)'
-        ],
-        'Finance': [
-            'Number formatting với dấu phân cách',
-            'Currency selector',
-            'Chart visualization',
-            'Summary statistics',
-            'Export report',
-            'Date range filter',
-            'Category breakdown'
-        ]
-    };
-
-    const impliedList = categoryImplied[category] || categoryImplied['Tool'];
-
-    featureTable += `
-### Tính năng implied (tự động thêm theo category: ${category})
-
-${impliedList.map((f, i) => `${i + 1}. ${f}`).join('\n')}
-
-`;
-
-    // Mục tiêu
-    if (userSelections.goals.length > 0) {
-        featureTable += `
-### 🎯 Mục tiêu đạt được
-
-${userSelections.goals.map((g, i) => `${i + 1}. **${g}** → [AI mô tả cách app giúp đạt mục tiêu này]`).join('\n')}
-
-`;
-    }
-
-    // Kết quả mong muốn
-    if (userSelections.expectedResults.length > 0) {
-        featureTable += `
-### ✅ Kết quả mong muốn
-
-${userSelections.expectedResults.map((r, i) => `${i + 1}. ${r}`).join('\n')}
-
-`;
-    }
-
-    return `
-## ⚙️ MÔ TẢ TÍNH NĂNG CHI TIẾT (FEATURE SPECIFICATION)
-${featureTable}
-### Error Handling (Bắt buộc implement)
-
-| Tình huống | Xử lý |
-|------------|-------|
-| Dữ liệu rỗng/null | Hiển thị thông báo thân thiện + hướng dẫn |
-| Format không hợp lệ | Validate + hiện error message cụ thể |
-| Hết thời gian (nếu có timer) | Auto-submit + thông báo |
-| LocalStorage đầy | Try-catch + fallback behavior |
-| User refresh trang | Restore state từ localStorage nếu có |
+- **Các tính năng chính (Key Features):**
+${features.map(f => `  - ✅ ${f}`).join('\n')}
 `;
 }
 
-// ==========================================
-// BƯỚC 4C: CÁCH THỨC VẬN HÀNH (OPERATION FLOW)
-// Tích hợp từ skill: app-builder, game-development
-// ==========================================
-function generateOperationFlow(category: string, _userSelections: UserSelections): string {
-    let userJourney = '';
-    let stateStructure = '';
+function generateOperationFlowV2(category: string, _userSelections: UserSelections): string {
+    // Logic tương tự generateOperationFlow cũ nhưng format lại theo style Step-by-Step của demo
+    let steps = '';
 
-    if (category === 'Education') {
-        userJourney = `
-1. **Mở app** → Hiển thị Welcome Screen
-   - Thấy tiêu đề, mô tả, nút "Bắt đầu"
-   - Background gradient, animation fadeIn
+    if (category === 'Education' || category === 'Quiz') {
+        steps = `### Bước 1: Khởi tạo dữ liệu
+- Giáo viên nhập/import danh sách câu hỏi hoặc bài học.
+- Hệ thống lưu vào LocalStorage.
 
-2. **Click "Bắt đầu"** → Chuyển sang Question Screen
-   - Hiển thị câu hỏi đầu tiên
-   - Timer bắt đầu đếm (nếu có)
-   - Progress bar: 1/N
+### Bước 2: Cấu hình bài học/kiểm tra
+- Chọn chế độ (Ôn tập, Kiểm tra, Trò chơi).
+- Cài đặt thời gian, số lượng câu hỏi.
 
-3. **Chọn đáp án** → Xử lý câu trả lời
-   - Highlight đáp án đã chọn
-   - Hiện đáp án đúng (màu xanh)
-   - Nếu sai: shake animation + hiện đáp án đúng
-   - Update điểm số
+### Bước 3: Học sinh tham gia
+- Hiển thị câu hỏi/nội dung trực quan.
+- Học sinh tương tác (chọn đáp án, kéo thả, điền từ).
+- Hệ thống phản hồi tức thì (âm thanh, hiệu ứng visual).
 
-4. **Click "Tiếp theo"** → Câu hỏi kế tiếp
-   - Slide animation
-   - Update progress bar
-   - Repeat bước 3-4 đến hết
-
-5. **Hoàn thành** → Result Screen
-   - Confetti nếu điểm cao
-   - Hiển thị: Điểm, Thời gian, Số câu đúng
-   - Đánh giá (Xuất sắc/Tốt/Cần cố gắng)
-   - Nút "Làm lại" + "Xem câu sai"
-
-6. **Xem câu sai** (Optional)
-   - Danh sách câu trả lời sai
-   - Hiện đáp án đúng + giải thích (nếu có)
-
-7. **Làm lại** → Quay về bước 2
-   - Reset state
-   - Xáo trộn câu hỏi (random)`;
-
-        stateStructure = `
-\`\`\`javascript
-let state = {
-    // Điều khiển màn hình
-    currentScreen: 'welcome' | 'question' | 'result' | 'review',
-    
-    // Dữ liệu câu hỏi
-    questions: [...],           // Mảng câu hỏi
-    currentIndex: 0,            // Index câu hiện tại
-    
-    // Kết quả
-    answers: [],                // Đáp án user đã chọn
-    score: 0,                   // Điểm số
-    correctCount: 0,            // Số câu đúng
-    wrongQuestions: [],         // Các câu trả lời sai
-    
-    // Timer
-    timeStart: null,            // Thời điểm bắt đầu
-    timeEnd: null,              // Thời điểm kết thúc
-    timeLimit: null,            // Giới hạn thời gian (seconds)
-    
-    // Settings
-    isShuffled: true,           // Có xáo trộn không
-    showCorrectImmediately: true // Hiện đáp án đúng ngay
-};
-\`\`\``;
+### Bước 4: Kết thúc & Đánh giá
+- Hiển thị kết quả tổng quan (Score, Stars).
+- Lưu lịch sử làm bài.
+- Thống kê các câu hay sai.`;
     } else if (category === 'Management') {
-        userJourney = `
-1. **Mở app** → Dashboard Overview
-   - Load dữ liệu từ localStorage
-   - Hiển thị summary cards (tổng số, thống kê)
-   - Render bảng dữ liệu
+        steps = `### Bước 1: Quản lý danh mục
+- Thiết lập các danh mục cần quản lý (Lớp, Sản phẩm, Nhân viên...).
 
-2. **Tìm kiếm** → Filter realtime
-   - Gõ vào search box
-   - Debounce 300ms
-   - Filter data + re-render table
+### Bước 2: Nhập liệu (CRUD)
+- Thêm mới dữ liệu (Form + Validation).
+- Import từ Excel (nếu có).
 
-3. **Sort** → Sắp xếp
-   - Click header column
-   - Toggle asc/desc
-   - Re-render table
+### Bước 3: Theo dõi & Tác nghiệp
+- Xem danh sách dưới dạng Bảng/Card.
+- Tìm kiếm, Lọc, Sắp xếp dữ liệu.
+- Thực hiện các thao tác nghiệp vụ (Chấm công, Điểm danh, Cập nhật trạng thái).
 
-4. **Thêm mới** → Modal Form
-   - Click nút "Thêm mới"
-   - Hiện modal với form trống
-   - Validate inputs
-   - Submit → Add to data + close modal + toast success
-
-5. **Sửa** → Modal Form (pre-filled)
-   - Click icon Edit trên row
-   - Hiện modal với data hiện tại
-   - Update → Save + close + toast success
-
-6. **Xóa** → Confirm Dialog
-   - Click icon Delete
-   - Hiện confirm dialog
-   - Confirm → Remove from data + toast success
-   - Cancel → Close dialog
-
-7. **Export** → Download file
-   - Click nút Export
-   - Generate Excel/PDF
-   - Trigger download`;
-
-        stateStructure = `
-\`\`\`javascript
-let state = {
-    // Dữ liệu
-    items: [...],               // Mảng dữ liệu chính
-    filteredItems: [...],       // Dữ liệu sau khi filter
-    
-    // UI State
-    searchQuery: '',            // Text tìm kiếm
-    sortColumn: 'id',           // Column đang sort
-    sortDirection: 'asc',       // Hướng sort
-    currentPage: 1,             // Trang hiện tại
-    itemsPerPage: 10,           // Số item/trang
-    
-    // Modal
-    isModalOpen: false,         // Modal có mở không
-    modalMode: 'add' | 'edit',  // Mode của modal
-    editingItem: null,          // Item đang edit
-    
-    // Form
-    formData: {...},            // Dữ liệu form
-    formErrors: {...},          // Lỗi validation
-    
-    // Loading
-    isLoading: false
-};
-\`\`\``;
+### Bước 4: Báo cáo & Xuất dữ liệu
+- Xem Dashboard thống kê tổng quan.
+- Export báo cáo ra file Excel/PDF.`;
     } else if (category === 'Game') {
-        userJourney = `
-1. **Mở app** → Start Menu
-   - Logo + Tiêu đề game
-   - Nút "Chơi ngay"
-   - High Score hiển thị
-   - Settings (sound on/off)
+        steps = `### Bước 1: Màn hình chờ (Start Screen)
+- Giới thiệu game, hướng dẫn cách chơi.
+- Nút "Play" với hiệu ứng thu hút.
 
-2. **Click "Chơi ngay"** → Game Screen
-   - Init game state
-   - Start game loop
-   - HUD: Score, Lives/Timer
+### Bước 2: Gameplay Loop
+- Khởi tạo màn chơi (Level generation).
+- Người chơi tương tác -> Cập nhật trạng thái game.
+- Tính điểm/thời gian thực.
 
-3. **Gameplay Loop**
-   - Hiển thị challenge (câu hỏi/puzzle/action)
-   - Nhận input từ user
-   - Check đáp án/action
-   - Update score + animation
-   - Next challenge hoặc Game Over
+### Bước 3: Win/Lose Condition
+- Kiểm tra điều kiện thắng/thua.
+- Hiển thị màn hình kết quả (Game Over / Level Complete).
 
-4. **Correct/Win** → Positive Feedback
-   - +Score animation
-   - Sound effect (optional)
-   - Flash green
-
-5. **Wrong/Lose** → Negative Feedback
-   - -Life hoặc penalty
-   - Shake animation
-   - Sound effect (optional)
-
-6. **Game Over** → End Screen
-   - Final score lớn
-   - So sánh với High Score
-   - Update High Score nếu mới
-   - Confetti nếu record mới
-   - "Chơi lại" button
-
-7. **Chơi lại** → Reset + bước 2`;
-
-        stateStructure = `
-\`\`\`javascript
-let state = {
-    // Game state
-    gameState: 'menu' | 'playing' | 'paused' | 'gameover',
-    
-    // Score
-    score: 0,
-    highScore: localStorage.getItem('highScore') || 0,
-    
-    // Lives/Time
-    lives: 3,                   // Hoặc time remaining
-    level: 1,
-    
-    // Game data
-    currentChallenge: {...},    // Challenge hiện tại
-    challenges: [...],          // Danh sách challenges
-    challengeIndex: 0,
-    
-    // Settings
-    soundEnabled: true,
-    difficulty: 'normal',
-    
-    // Animation
-    isAnimating: false
-};
-\`\`\``;
+### Bước 4: High Score & Replay
+- Lưu điểm cao.
+- Nút "Chơi lại" để reset game loop.`;
     } else {
-        // Tool / Other
-        userJourney = `
-1. **Mở app** → Main Screen
-   - Form input bên trái
-   - Preview area bên phải (trống)
+        steps = `### Bước 1: Input
+- Người dùng nhập liệu hoặc upload file.
+- Validate dữ liệu đầu vào.
 
-2. **Nhập dữ liệu** → Live Preview
-   - User nhập vào form/textarea
-   - Validate realtime
-   - Update preview area
+### Bước 2: Processing
+- Xử lý dữ liệu theo logic nghiệp vụ.
+- Hiển thị loading/progress nếu cần.
 
-3. **Click "Xử lý"** → Process
-   - Validate all inputs
-   - Show loading
-   - Process data
-   - Update preview với result
-
-4. **Copy/Download** → Output
-   - Click Copy → Copy to clipboard + toast
-   - Click Download → Trigger file download
-
-5. **Clear** → Reset
-   - Clear all inputs
-   - Clear preview
-   - Reset state`;
-
-        stateStructure = `
-\`\`\`javascript
-let state = {
-    // Input
-    inputData: '',              // Dữ liệu đầu vào
-    
-    // Output
-    outputData: '',             // Kết quả xử lý
-    
-    // UI
-    isProcessing: false,        // Đang xử lý
-    error: null,                // Lỗi (nếu có)
-    
-    // Options
-    options: {...}              // Các tùy chọn xử lý
-};
-\`\`\``;
+### Bước 3: Output
+- Hiển thị kết quả sau xử lý.
+- Cho phép preview, copy hoặc download kết quả.`;
     }
 
-    return `
-## 🔄 CÁCH THỨC VẬN HÀNH (OPERATION FLOW)
+    return `## II. LUỒNG HOẠT ĐỘNG (USER FLOW)
+${steps}
+`;
+}
 
-### User Journey (Step-by-step)
-${userJourney}
+function generateDetailedFeatures(_category: string, userSelections: UserSelections, implicitFeatures: string[]): string {
+    // Kết hợp features từ user selection và implicit features
+    const allFeatures = [...userSelections.functions, ...implicitFeatures];
+    // Loại bỏ trùng lặp
+    const uniqueFeatures = Array.from(new Set(allFeatures));
 
-### State Management
-${stateStructure}
+    let content = `## III. CẤU TRÚC CHỨC NĂNG CHI TIẾT\n\n`;
 
-### Data Flow
+    // Nhóm tính năng theo module giả định (đơn giản hóa)
+    content += `### A. MODULE CHÍNH (Core Features)\n`;
+    uniqueFeatures.slice(0, Math.ceil(uniqueFeatures.length / 2)).forEach(f => {
+        content += `- **${f}**:\n  - [Mô tả chi tiết cách hoạt động]\n  - [Yêu cầu về giao diện/tương tác]\n`;
+    });
+
+    content += `\n### B. MODULE BỔ TRỢ & TIỆN ÍCH\n`;
+    uniqueFeatures.slice(Math.ceil(uniqueFeatures.length / 2)).forEach(f => {
+        content += `- **${f}**:\n  - [Mô tả ngắn gọn]\n`;
+    });
+
+    if (userSelections.customRequirements.length > 0) {
+        content += `\n### C. YÊU CẦU ĐẶC BIỆT (User Requests)\n`;
+        userSelections.customRequirements.forEach(req => {
+            content += `- ⭐ ${req}\n`;
+        });
+    }
+
+    return content;
+}
+
+function generateUIRequirements(_category: string, config: typeof categoryConfig['Education']): string {
+    return `## IV. YÊU CẦU GIAO DIỆN (UI/UX)
+
+### 1. Phong cách thiết kế
+- **Style:** Modern, Clean, Apple-like hoặc Material Design nhẹ nhàng.
+- **Màu sắc chủ đạo:** ${config.colors.primary} (Primary), ${config.colors.secondary} (Secondary).
+- **Font chữ:** Sử dụng 'Be Vietnam Pro' hoặc 'Nunito' (Google Fonts) để hỗ trợ tiếng Việt tốt nhất.
+- **Khoảng trắng:** Sử dụng nhiều whitespace để tạo cảm giác thoáng đãng.
+- **Bo góc:** Border-radius 8px - 16px cho các thẻ card/button.
+
+### 2. Components chính
+- **Inputs:** Style hiện đại, focus effect, placeholder rõ ràng.
+- **Buttons:** Gradient hoặc Solid color, hover effect (scale/brightness).
+- **Cards:** Box-shadow nhẹ (shadow-sm -> shadow-md khi hover).
+- **Feedback:** SweetAlert2 hoặc Toastify cho các thông báo thành công/lỗi.
+
+### 3. Responsive
+- Tương thích hoàn toàn trên Mobile (dọc), Tablet và Desktop.
+- Menu chuyển thành Hamburger hoặc Bottom Navigation trên mobile.
+`;
+}
+
+function generateTechnicalRequirements(category: string): string {
+    let storageStructure = '';
+    if (category === 'Education') {
+        storageStructure = `const data = {
+  questions: [], // Danh sách câu hỏi
+  history: [],   // Lịch sử làm bài
+  settings: {}   // Cài đặt (thời gian, âm thanh...)
+}`;
+    } else if (category === 'Management') {
+        storageStructure = `const data = {
+  items: [],      // Danh sách đối tượng quản lý
+  categories: [], // Danh mục
+  config: {}      // Cấu hình
+}`;
+    } else {
+        storageStructure = `const data = {
+  // Cấu trúc dữ liệu phù hợp
+}`;
+    }
+
+    return `## V. YÊU CẦU KỸ THUẬT
+
+### 1. Lưu trữ dữ liệu (LocalStorage)
+- Dữ liệu được lưu dưới dạng JSON trong LocalStorage.
+- Cấu trúc mẫu:
+\`\`\`javascript
+${storageStructure}
 \`\`\`
-[User Input] 
-    ↓ 
-[Validate] 
-    ↓ 
-[Update State] 
-    ↓ 
-[Re-render UI] 
-    ↓ 
-[Save to LocalStorage]
-\`\`\`
 
-### Key Event Handlers
+### 2. Xử lý Logic & Data
+- **Validation:** Kiểm tra kỹ dữ liệu đầu vào (không để trống, đúng định dạng).
+- **Error Handling:** Try-catch các thao tác quan trọng (parse JSON, import file).
+- **Performance:** Tối ưu vòng lặp nếu dữ liệu lớn (>1000 items).
 
-| Event | Function | Mô tả |
-|-------|----------|-------|
-| DOMContentLoaded | \`init()\` | Khởi tạo app, load saved data |
-| click:start | \`start()\` | Bắt đầu/chuyển sang main screen |
-| click:action | \`handleAction()\` | Xử lý action chính của app |
-| click:next | \`next()\` | Chuyển sang item/step tiếp theo |
-| click:submit | \`submit()\` | Submit dữ liệu |
-| click:restart | \`restart()\` | Reset và bắt đầu lại |
-| input:search | \`handleSearch()\` | Xử lý tìm kiếm (debounced) |
-| keydown:Enter | \`handleEnter()\` | Submit khi nhấn Enter |
+### 3. Export/Import (Nếu có)
+- Hỗ trợ Export dữ liệu ra Excel (.xlsx) chhoặc JSON.
+- Import dữ liệu từ file để khôi phục/nhập liệu nhanh.
+`;
+}
 
-### LocalStorage Keys
+function generateOutputChecklist(): string {
+    return `## VII. YÊU CẦU OUTPUT (BẮT BUỘC)
 
-| Key | Mô tả | Format |
-|-----|-------|--------|
-| \`app_data\` | Dữ liệu chính của app | JSON object |
-| \`app_history\` | Lịch sử sử dụng | JSON array |
-| \`app_settings\` | Cài đặt người dùng | JSON object |
+Hãy tạo ra một file HTML duy nhất (\`index.html\`) chứa toàn bộ code (HTML, CSS, JS):
+
+- [ ] **Single File:** Tất cả code nằm trong 1 file để dễ dàng chạy và chia sẻ.
+- [ ] **Code Quality:** Code trong sáng, có comment giải thích các đoạn logic phức tạp (bằng tiếng Việt).
+- [ ] **Demo Data:** Tự động sinh dữ liệu mẫu (Sample Data) nếu LocalStorage trống để người dùng thấy ngay app hoạt động thế nào.
+- [ ] **No Server:** App chạy hoàn toàn client-side, không yêu cầu cài đặt server.
 `;
 }
 

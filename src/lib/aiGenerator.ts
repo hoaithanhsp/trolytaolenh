@@ -2135,6 +2135,84 @@ YÊU CẦU:
     }
 }
 
+// ==========================================
+// PHÂN TÍCH ẢNH VỚI GEMINI VISION API
+// ==========================================
+export async function analyzeImageWithAI(
+    imageBase64: string,
+    mimeType: string,
+    apiKey: string,
+    preferredModel?: string
+): Promise<string> {
+    const model = preferredModel || AI_MODELS[0];
+
+    const prompt = `Bạn là chuyên gia phân tích ứng dụng và giao diện người dùng. Hãy phân tích ảnh chụp màn hình này và tạo một MÔ TẢ Ý TƯỞNG ỨNG DỤNG chi tiết.
+
+NHIỆM VỤ:
+1. Quan sát kỹ giao diện trong ảnh
+2. Xác định loại ứng dụng (giáo dục, quản lý, game, công cụ, tài chính...)
+3. Liệt kê các tính năng chính có thể thấy
+4. Mô tả đối tượng sử dụng phù hợp
+5. Đề xuất các tính năng bổ sung hữu ích
+
+FORMAT TRẢ VỀ (viết thành đoạn văn mô tả ý tưởng hoàn chỉnh):
+"Ứng dụng [TÊN LOẠI APP] dành cho [ĐỐI TƯỢNG]. Các tính năng chính bao gồm: [LIỆT KÊ TÍNH NĂNG]. Giao diện cần có: [MÔ TẢ UI]. Yêu cầu đặc biệt: [NẾU CÓ]."
+
+CHÚ Ý:
+- Viết bằng tiếng Việt
+- Ngắn gọn nhưng đầy đủ (2-4 câu)
+- Tập trung vào tính năng thực tế nhìn thấy trong ảnh
+- Không cần giải thích, chỉ trả về mô tả ý tưởng`;
+
+    try {
+        const response = await fetch(
+            `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
+            {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    contents: [{
+                        parts: [
+                            { text: prompt },
+                            {
+                                inline_data: {
+                                    mime_type: mimeType,
+                                    data: imageBase64
+                                }
+                            }
+                        ]
+                    }],
+                    generationConfig: {
+                        temperature: 0.7,
+                        maxOutputTokens: 2048,
+                    }
+                })
+            }
+        );
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            const errorMessage = errorData.error?.message || `HTTP ${response.status}`;
+            throw new Error(`Lỗi API: ${errorMessage}`);
+        }
+
+        const data = await response.json();
+
+        if (!data.candidates || !data.candidates[0]?.content?.parts?.[0]?.text) {
+            throw new Error('Không nhận được phản hồi từ API');
+        }
+
+        return data.candidates[0].content.parts[0].text.trim();
+
+    } catch (error) {
+        console.error('Error analyzing image:', error);
+        throw error;
+    }
+}
+
 // Export
 export { AI_MODELS };
 export type { GeneratedResult, GenerationProgress, ProgressCallback, EnhancedIdea, AISuggestionsResult };
+

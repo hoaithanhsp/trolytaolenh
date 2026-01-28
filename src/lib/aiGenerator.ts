@@ -1131,12 +1131,24 @@ ${storageStructure}
 function generateOutputChecklist(): string {
     return `## VII. YÊU CẦU OUTPUT (BẮT BUỘC)
 
-Hãy tạo ra một file HTML duy nhất (\`index.html\`) chứa toàn bộ code (HTML, CSS, JS):
+Hãy tạo ra một ứng dụng web hoàn chỉnh với tích hợp **Gemini AI**:
 
-- [ ] **Single File:** Tất cả code nằm trong 1 file để dễ dàng chạy và chia sẻ.
-- [ ] **Code Quality:** Code trong sáng, có comment giải thích các đoạn logic phức tạp (bằng tiếng Việt).
-- [ ] **Demo Data:** Tự động sinh dữ liệu mẫu (Sample Data) nếu LocalStorage trống để người dùng thấy ngay app hoạt động thế nào.
-- [ ] **No Server:** App chạy hoàn toàn client-side, không yêu cầu cài đặt server.
+### A. Cấu trúc dự án:
+- [ ] \`index.html\` - Giao diện chính
+- [ ] \`style.css\` - Styles (hoặc inline trong HTML)
+- [ ] \`app.js\` - Logic chính và tích hợp Gemini API
+
+### B. Tích hợp Gemini AI:
+- [ ] **API Integration:** Gọi Gemini API (gemini-2.0-flash hoặc gemini-1.5-flash) để xử lý các tác vụ AI
+- [ ] **API Key Input:** Cho phép người dùng nhập API Key của họ (lưu vào LocalStorage)
+- [ ] **Error Handling:** Xử lý lỗi API (rate limit, network error, invalid key)
+- [ ] **Loading States:** Hiển thị trạng thái loading khi đang gọi AI
+
+### C. Yêu cầu code:
+- [ ] **Code Quality:** Code trong sáng, có comment giải thích bằng tiếng Việt
+- [ ] **Demo Data:** Có dữ liệu mẫu để demo ngay
+- [ ] **Responsive:** Hoạt động tốt trên mobile/tablet/desktop
+- [ ] **Single Page App:** Không cần backend server phức tạp, chạy trực tiếp trên browser
 `;
 }
 
@@ -1219,15 +1231,33 @@ ${input.customRequirements.map(r => `- ⭐ ${r}`).join('\n')}
     promptCommand += `## 🛠️ YÊU CẦU KỸ THUẬT
 
 ### Công nghệ bắt buộc:
-- **HTML5/CSS3/JavaScript ES6+** trong 1 file duy nhất
+- **HTML5/CSS3/JavaScript ES6+**
+- **Gemini AI API:** Tích hợp Gemini API cho các tính năng AI thông minh
 - **Responsive Design:** Hiển thị tốt trên mọi thiết bị
-- **LocalStorage:** Lưu trữ dữ liệu offline
+- **LocalStorage:** Lưu trữ dữ liệu và API Key
 - **Font tiếng Việt:** Sử dụng 'Be Vietnam Pro' (Google Fonts)
 - **Icons:** FontAwesome 6
+
+### Tích hợp Gemini AI:
+\`\`\`javascript
+// Gọi Gemini API
+const API_KEY = localStorage.getItem('gemini_api_key');
+const response = await fetch(
+  \`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=\${API_KEY}\`,
+  {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      contents: [{ parts: [{ text: prompt }] }]
+    })
+  }
+);
+\`\`\`
 
 ### Thư viện CDN khuyến nghị:
 ${category === 'Education' || input.idea.toLowerCase().includes('toán') ? '- **MathJax 3:** Hiển thị công thức Toán\n' : ''}${category === 'Management' || input.idea.toLowerCase().includes('thống kê') ? '- **Chart.js:** Biểu đồ thống kê\n' : ''}- **Canvas Confetti:** Hiệu ứng chúc mừng
 - **SheetJS (xlsx):** Import/Export Excel (nếu cần)
+- **Marked.js:** Parse markdown response từ AI
 
 ---
 
@@ -1241,19 +1271,22 @@ ${category === 'Education' || input.idea.toLowerCase().includes('toán') ? '- **
 - **Animation:** Smooth transitions, micro-interactions
 
 ### Components:
+- **API Key Input:** Form nhập/lưu Gemini API Key
+- **Chat/Input Area:** Khu vực nhập liệu và hiển thị response từ AI
+- **Loading Indicator:** Spinner/skeleton khi đang gọi AI
 - **Buttons:** Gradient hoặc Solid, hover effects
 - **Cards:** Modern cards với shadow
-- **Forms:** Clean inputs với focus states
 - **Feedback:** Toast notifications cho các hành động
 
 ---
 
 ## 📋 OUTPUT BẮT BUỘC
 
-Tạo ra **1 file HTML duy nhất** (index.html) chứa toàn bộ:
-- [ ] HTML structure đầy đủ
-- [ ] CSS styles trong \`<style>\` tag
-- [ ] JavaScript logic trong \`<script>\` tag
+Tạo ra **ứng dụng web tích hợp Gemini AI** với các yêu cầu:
+- [ ] Cho phép người dùng nhập và lưu API Key (LocalStorage)
+- [ ] Tích hợp Gemini API để xử lý các tác vụ AI thông minh
+- [ ] Xử lý lỗi API (hiển thị thông báo thân thiện)
+- [ ] Loading states khi đang xử lý AI
 - [ ] Dữ liệu mẫu (Demo data) để test ngay
 - [ ] Comments giải thích bằng tiếng Việt
 - [ ] Responsive trên mobile/tablet/desktop
@@ -1262,7 +1295,7 @@ Tạo ra **1 file HTML duy nhất** (index.html) chứa toàn bộ:
 
 ## 🚀 BẮT ĐẦU TẠO APP!
 
-Hãy tạo app "${title}" với tất cả các tính năng và yêu cầu trên. Code phải chạy được ngay khi mở file HTML trong trình duyệt.
+Hãy tạo app "${title}" với tất cả các tính năng và yêu cầu trên. App phải tích hợp Gemini AI và chạy được ngay khi mở file HTML trong trình duyệt.
 `;
 
     return {

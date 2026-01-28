@@ -775,14 +775,8 @@ function generateSystemInstruction(idea: string, category: string, config: typeo
     // Tạo tiêu đề sáng tạo
     const appTitle = generateCreativeTitle(idea, category, config);
 
-    // Xác định các thư viện CDN cần dùng (đã được gọi trong generateSmartHTMLTemplate)
-
-
     // Tự động đề xuất tính năng thông minh
     const smartFeatures = inferSmartFeatures(idea, category);
-
-    // Tạo template HTML phù hợp với loại app
-    const htmlTemplate = generateSmartHTMLTemplate(idea, category, config, smartFeatures);
 
     // ===== TẠO CÁC PHẦN NỘI DUNG THEO CẤU TRÚC DEMO =====
     const appSummary = generateAppSummary(appTitle, category, getCleanIdea(idea), smartFeatures);
@@ -803,15 +797,6 @@ ${detailedFeatures}
 ${uiRequirements}
 ---
 ${techRequirements}
----
-## VI. MẪU CODE HTML (TEMPLATE)
-
-Dưới đây là cấu trúc HTML cơ bản với các thư viện cần thiết. Hãy sử dụng nó làm nền tảng và phát triển thêm:
-
-\`\`\`html
-${htmlTemplate}
-\`\`\`
-
 ---
 ${outputChecklist}
 
@@ -1154,6 +1139,140 @@ Hãy tạo ra một file HTML duy nhất (\`index.html\`) chứa toàn bộ code
 - [ ] **No Server:** App chạy hoàn toàn client-side, không yêu cầu cài đặt server.
 `;
 }
+
+// ==========================================
+// FUNCTION: TẠO PROMPT LỆNH HOÀN CHỈNH
+// Kết hợp ý tưởng + các gợi ý chuyên sâu đã chọn
+// ==========================================
+interface PromptCommandInput {
+    idea: string;                    // Nội dung khung ý tưởng
+    selectedFunctions: string[];     // Chức năng đã chọn
+    selectedTargetUsers: string[];   // Đối tượng sử dụng đã chọn
+    selectedGoals: string[];         // Mục tiêu đã chọn
+    selectedExpectedResults: string[]; // Kết quả mong muốn đã chọn
+    customRequirements: string[];    // Yêu cầu riêng
+}
+
+export function generatePromptCommand(input: PromptCommandInput): {
+    promptCommand: string;
+    category: string;
+    title: string
+} {
+    const { category, config } = detectCategory(input.idea);
+    const title = generateTitle(input.idea, category, config);
+
+    // Tạo prompt lệnh hoàn chỉnh
+    let promptCommand = `# 🚀 YÊU CẦU TẠO ỨNG DỤNG WEB
+
+## 📝 MÔ TẢ Ý TƯỞNG
+${input.idea}
+
+---
+`;
+
+    // Thêm các chức năng đã chọn
+    if (input.selectedFunctions.length > 0) {
+        promptCommand += `## ⚡ CHỨC NĂNG YÊU CẦU
+${input.selectedFunctions.map(f => `- ✅ ${f}`).join('\n')}
+
+---
+`;
+    }
+
+    // Thêm đối tượng sử dụng
+    if (input.selectedTargetUsers.length > 0) {
+        promptCommand += `## 👥 ĐỐI TƯỢNG SỬ DỤNG
+${input.selectedTargetUsers.map(u => `- 👤 ${u}`).join('\n')}
+
+---
+`;
+    }
+
+    // Thêm mục tiêu
+    if (input.selectedGoals.length > 0) {
+        promptCommand += `## 🎯 MỤC TIÊU ỨNG DỤNG
+${input.selectedGoals.map(g => `- 🎯 ${g}`).join('\n')}
+
+---
+`;
+    }
+
+    // Thêm kết quả mong muốn
+    if (input.selectedExpectedResults.length > 0) {
+        promptCommand += `## 🏆 KẾT QUẢ MONG MUỐN
+${input.selectedExpectedResults.map(r => `- 🏆 ${r}`).join('\n')}
+
+---
+`;
+    }
+
+    // Thêm yêu cầu riêng
+    if (input.customRequirements.length > 0) {
+        promptCommand += `## ⭐ YÊU CẦU RIÊNG
+${input.customRequirements.map(r => `- ⭐ ${r}`).join('\n')}
+
+---
+`;
+    }
+
+    // Thêm yêu cầu kỹ thuật chung
+    promptCommand += `## 🛠️ YÊU CẦU KỸ THUẬT
+
+### Công nghệ bắt buộc:
+- **HTML5/CSS3/JavaScript ES6+** trong 1 file duy nhất
+- **Responsive Design:** Hiển thị tốt trên mọi thiết bị
+- **LocalStorage:** Lưu trữ dữ liệu offline
+- **Font tiếng Việt:** Sử dụng 'Be Vietnam Pro' (Google Fonts)
+- **Icons:** FontAwesome 6
+
+### Thư viện CDN khuyến nghị:
+${category === 'Education' || input.idea.toLowerCase().includes('toán') ? '- **MathJax 3:** Hiển thị công thức Toán\n' : ''}${category === 'Management' || input.idea.toLowerCase().includes('thống kê') ? '- **Chart.js:** Biểu đồ thống kê\n' : ''}- **Canvas Confetti:** Hiệu ứng chúc mừng
+- **SheetJS (xlsx):** Import/Export Excel (nếu cần)
+
+---
+
+## 🎨 YÊU CẦU GIAO DIỆN
+
+### Phong cách thiết kế:
+- **Style:** Modern, Clean, tối giản nhưng cuốn hút
+- **Màu sắc chủ đạo:** Gradient đẹp mắt (${config.colors.primary} → ${config.colors.secondary})
+- **Bo góc:** Border-radius 12px-16px
+- **Shadow:** Subtle shadows cho depth
+- **Animation:** Smooth transitions, micro-interactions
+
+### Components:
+- **Buttons:** Gradient hoặc Solid, hover effects
+- **Cards:** Modern cards với shadow
+- **Forms:** Clean inputs với focus states
+- **Feedback:** Toast notifications cho các hành động
+
+---
+
+## 📋 OUTPUT BẮT BUỘC
+
+Tạo ra **1 file HTML duy nhất** (index.html) chứa toàn bộ:
+- [ ] HTML structure đầy đủ
+- [ ] CSS styles trong \`<style>\` tag
+- [ ] JavaScript logic trong \`<script>\` tag
+- [ ] Dữ liệu mẫu (Demo data) để test ngay
+- [ ] Comments giải thích bằng tiếng Việt
+- [ ] Responsive trên mobile/tablet/desktop
+
+---
+
+## 🚀 BẮT ĐẦU TẠO APP!
+
+Hãy tạo app "${title}" với tất cả các tính năng và yêu cầu trên. Code phải chạy được ngay khi mở file HTML trong trình duyệt.
+`;
+
+    return {
+        promptCommand,
+        category,
+        title
+    };
+}
+
+export type { PromptCommandInput };
 
 // Tạo HTML Template thông minh
 function generateSmartHTMLTemplate(idea: string, category: string, config: typeof categoryConfig['Education'], _smartFeatures: string[]): string {

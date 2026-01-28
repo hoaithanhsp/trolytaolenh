@@ -1,11 +1,18 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Sparkles, Loader2, Lightbulb, Plus, X, Users, Target, Zap, Award, Brain, RefreshCw, Edit3 } from 'lucide-react';
-import { enhanceIdeaWithAI, getAISuggestions } from '../lib/aiGenerator';
-import type { AISuggestionsResult } from '../lib/aiGenerator';
+import { Sparkles, Loader2, Lightbulb, Plus, X, Users, Target, Zap, Award, Brain, RefreshCw, Edit3, Image, PenLine } from 'lucide-react';
+import { enhanceIdeaWithAI, getAISuggestions, generatePromptCommand } from '../lib/aiGenerator';
+import type { AISuggestionsResult, PromptCommandInput } from '../lib/aiGenerator';
 import { getApiKey } from '../lib/storage';
+import ImageWebAnalyzer from './ImageWebAnalyzer';
+
+interface PromptResult {
+  promptCommand: string;
+  category: string;
+  title: string;
+}
 
 interface InputSectionProps {
-  onGenerate: (idea: string) => Promise<void>;
+  onGeneratePrompt: (result: PromptResult) => void;
   isLoading: boolean;
 }
 
@@ -15,7 +22,7 @@ interface Suggestion {
   items: string[];
 }
 
-export default function InputSection({ onGenerate, isLoading }: InputSectionProps) {
+export default function InputSection({ onGeneratePrompt, isLoading }: InputSectionProps) {
   const [idea, setIdea] = useState('');
   const [enhancedIdea, setEnhancedIdea] = useState('');
   const [ideaSummary, setIdeaSummary] = useState('');
@@ -31,6 +38,10 @@ export default function InputSection({ onGenerate, isLoading }: InputSectionProp
   const [customInput, setCustomInput] = useState('');
   const [customRequirements, setCustomRequirements] = useState<string[]>([]);
   const [showCustomInput, setShowCustomInput] = useState(false);
+
+  // State cho tab nhập liệu và phân tích ảnh
+  const [inputMode, setInputMode] = useState<'text' | 'image'>('text');
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
 
   // Reset khi ý tưởng thay đổi
   useEffect(() => {
@@ -126,20 +137,40 @@ export default function InputSection({ onGenerate, isLoading }: InputSectionProp
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (idea.trim() && !isLoading) {
-      let finalIdea = idea.trim();
+      // Phân loại các gợi ý đã chọn theo nhóm
+      const selectedFunctions: string[] = [];
+      const selectedTargetUsers: string[] = [];
+      const selectedGoals: string[] = [];
+      const selectedExpectedResults: string[] = [];
 
-      // Thêm các gợi ý đã chọn
-      if (selectedSuggestions.size > 0) {
-        const additionalInfo = Array.from(selectedSuggestions).join(', ');
-        finalIdea += `\n\nThông tin bổ sung: ${additionalInfo}`;
+      // Phân loại từ aiSuggestions
+      if (aiSuggestions) {
+        selectedSuggestions.forEach(item => {
+          if (aiSuggestions.functions.includes(item)) {
+            selectedFunctions.push(item);
+          } else if (aiSuggestions.targetUsers.includes(item)) {
+            selectedTargetUsers.push(item);
+          } else if (aiSuggestions.goals.includes(item)) {
+            selectedGoals.push(item);
+          } else if (aiSuggestions.expectedResults.includes(item)) {
+            selectedExpectedResults.push(item);
+          }
+        });
       }
 
-      // Thêm yêu cầu tùy chỉnh
-      if (customRequirements.length > 0) {
-        finalIdea += `\n\nYêu cầu riêng của người dùng: ${customRequirements.join(', ')}`;
-      }
+      // Tạo prompt command input
+      const promptInput: PromptCommandInput = {
+        idea: idea.trim(),
+        selectedFunctions,
+        selectedTargetUsers,
+        selectedGoals,
+        selectedExpectedResults,
+        customRequirements: customRequirements
+      };
 
-      await onGenerate(finalIdea);
+      // Tạo prompt lệnh hoàn chỉnh
+      const result = generatePromptCommand(promptInput);
+      onGeneratePrompt(result);
     }
   };
 
@@ -216,22 +247,57 @@ export default function InputSection({ onGenerate, isLoading }: InputSectionProp
       </div>
 
       <form onSubmit={handleSubmit} className="input-form">
-        <div className="textarea-wrapper">
-          <textarea
-            value={idea}
-            onChange={(e) => setIdea(e.target.value)}
-            placeholder="Viết ý tưởng của bạn vào đây..."
-            rows={4}
-            disabled={isLoading || isEnhancing}
-          />
-
-          {ideaSummary && (
-            <div className="idea-summary">
-              <Brain size={14} />
-              <span>{ideaSummary}</span>
-            </div>
-          )}
+        {/* Tab chuyển đổi mode nhập liệu */}
+        <div className="input-mode-tabs">
+          <button
+            type="button"
+            className={`mode-tab ${inputMode === 'text' ? 'active' : ''}`}
+            onClick={() => setInputMode('text')}
+          >
+            <PenLine size={16} />
+            Nhập ý tưởng
+          </button>
+          <button
+            type="button"
+            className={`mode-tab ${inputMode === 'image' ? 'active' : ''}`}
+            onClick={() => setInputMode('image')}
+          >
+            <Image size={16} />
+            Phân tích từ ảnh
+          </button>
         </div>
+
+        {/* Mode: Nhập ý tưởng text */}
+        {inputMode === 'text' && (
+          <div className="textarea-wrapper">
+            <textarea
+              value={idea}
+              onChange={(e) => setIdea(e.target.value)}
+              placeholder="Viết ý tưởng của bạn vào đây..."
+              rows={4}
+              disabled={isLoading || isEnhancing}
+            />
+
+            {ideaSummary && (
+              <div className="idea-summary">
+                <Brain size={14} />
+                <span>{ideaSummary}</span>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Mode: Phân tích từ ảnh */}
+        {inputMode === 'image' && (
+          <ImageWebAnalyzer
+            onAnalysisComplete={(result) => {
+              setIdea(result);
+              setInputMode('text');
+            }}
+            isAnalyzing={isAnalyzing}
+            setIsAnalyzing={setIsAnalyzing}
+          />
+        )}
 
         {enhanceError && (
           <div className="enhance-error">

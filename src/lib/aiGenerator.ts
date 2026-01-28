@@ -770,7 +770,7 @@ function generateHTMLTemplate(idea: string, category: string, config: typeof cat
 // ==========================================
 function generateSystemInstruction(idea: string, category: string, config: typeof categoryConfig['Education']): string {
     const features = extractFeatures(idea, category);
-
+    const cleanIdea = getCleanIdea(idea);
 
     // Tạo tiêu đề sáng tạo
     const appTitle = generateCreativeTitle(idea, category, config);
@@ -778,13 +778,33 @@ function generateSystemInstruction(idea: string, category: string, config: typeo
     // Tự động đề xuất tính năng thông minh
     const smartFeatures = inferSmartFeatures(idea, category);
 
-    // ===== TẠO CÁC PHẦN NỘI DUNG THEO CẤU TRÚC DEMO =====
-    const appSummary = generateAppSummary(appTitle, category, getCleanIdea(idea), smartFeatures);
+    // ===== TẠO CÁC PHẦN NỘI DUNG THEO CẤU TRÚC 9 PHẦN =====
+    // I. TỔNG QUAN DỰ ÁN
+    const appSummary = generateAppSummary(appTitle, category, cleanIdea, smartFeatures);
+
+    // II. LUỒNG HOẠT ĐỘNG
     const operationFlow = generateOperationFlowV2(category, features.userSelections);
+
+    // III. CẤU TRÚC CHỨC NĂNG CHI TIẾT
     const detailedFeatures = generateDetailedFeatures(category, features.userSelections, features.implicit);
+
+    // IV. YÊU CẦU GIAO DIỆN
     const uiRequirements = generateUIRequirements(category, config);
+
+    // V. YÊU CẦU KỸ THUẬT
     const techRequirements = generateTechnicalRequirements(category);
+
+    // VI. VAI TRÒ CỦA GEMINI AI (MỚI)
+    const aiRole = generateAIRole(category, cleanIdea);
+
+    // VII. YÊU CẦU OUTPUT
     const outputChecklist = generateOutputChecklist();
+
+    // VIII. HƯỚNG DẪN SỬ DỤNG (MỚI)
+    const userGuide = generateUserGuide();
+
+    // IX. XỬ LÝ TRƯỜNG HỢP ĐẶC BIỆT (MỚI)
+    const edgeCases = generateEdgeCases();
 
     const systemInstruction = `# ${config.icon} YÊU CẦU TẠO ỨNG DỤNG WEB: ${appTitle}
 
@@ -798,11 +818,26 @@ ${uiRequirements}
 ---
 ${techRequirements}
 ---
+${aiRole}
+---
 ${outputChecklist}
+---
+${userGuide}
+---
+${edgeCases}
 
 ## 🚀 LỜI NHẮN CHO AI
 
-Bạn là một chuyên gia lập trình web. Hãy biến ý tưởng này thành hiện thực một cách hoàn hảo nhất. Đừng chỉ viết code, hãy tạo ra một sản phẩm khiến người dùng phải thốt lên "WOW"!
+Bạn là một chuyên gia lập trình web với nhiều năm kinh nghiệm.
+
+**Nguyên tắc:**
+1. Đừng chỉ viết code - Hãy tạo ra sản phẩm khiến người dùng thốt lên "WOW"
+2. Chú trọng UX - Mọi thao tác phải trực quan, dễ hiểu
+3. Không lỗi vặt - Test kỹ mọi chức năng trước khi hoàn thành
+4. Code sạch - Comment đầy đủ bằng tiếng Việt, dễ maintain
+5. Demo data - Có dữ liệu mẫu để chạy ngay
+
+**Bắt đầu ngay!** 🎯
 `;
 
     return systemInstruction;
@@ -1037,7 +1072,7 @@ ${steps}
 `;
 }
 
-function generateDetailedFeatures(_category: string, userSelections: UserSelections, implicitFeatures: string[]): string {
+function generateDetailedFeatures(category: string, userSelections: UserSelections, implicitFeatures: string[]): string {
     // Kết hợp features từ user selection và implicit features
     const allFeatures = [...userSelections.functions, ...implicitFeatures];
     // Loại bỏ trùng lặp
@@ -1045,15 +1080,18 @@ function generateDetailedFeatures(_category: string, userSelections: UserSelecti
 
     let content = `## III. CẤU TRÚC CHỨC NĂNG CHI TIẾT\n\n`;
 
-    // Nhóm tính năng theo module giả định (đơn giản hóa)
+    // Nhóm tính năng theo module
+    const coreFeatures = uniqueFeatures.slice(0, Math.ceil(uniqueFeatures.length / 2));
+    const supportFeatures = uniqueFeatures.slice(Math.ceil(uniqueFeatures.length / 2));
+
     content += `### A. MODULE CHÍNH (Core Features)\n`;
-    uniqueFeatures.slice(0, Math.ceil(uniqueFeatures.length / 2)).forEach(f => {
-        content += `- **${f}**:\n  - [Mô tả chi tiết cách hoạt động]\n  - [Yêu cầu về giao diện/tương tác]\n`;
+    coreFeatures.forEach(f => {
+        content += generateFeatureDetail(f, category);
     });
 
     content += `\n### B. MODULE BỔ TRỢ & TIỆN ÍCH\n`;
-    uniqueFeatures.slice(Math.ceil(uniqueFeatures.length / 2)).forEach(f => {
-        content += `- **${f}**:\n  - [Mô tả ngắn gọn]\n`;
+    supportFeatures.forEach(f => {
+        content += `- **${f}:** ${generateShortDescription(f)}\n`;
     });
 
     if (userSelections.customRequirements.length > 0) {
@@ -1064,6 +1102,86 @@ function generateDetailedFeatures(_category: string, userSelections: UserSelecti
     }
 
     return content;
+}
+
+// Helper: Tạo mô tả chi tiết cho từng tính năng core
+function generateFeatureDetail(feature: string, category: string): string {
+    const lowerFeature = feature.toLowerCase();
+
+    if (lowerFeature.includes('bảng xếp hạng') || lowerFeature.includes('ranking') || lowerFeature.includes('thi đua')) {
+        return `
+#### 📊 ${feature}
+**Mô tả:** Hiển thị bảng xếp hạng theo tuần/tháng, tự động cập nhật, sắp xếp giảm dần
+**Giao diện:** Bảng với cột: Hạng, Tên, Nhóm, Điểm, Xu hướng (↑↓). Top 3 có huy chương 🥇🥈🥉
+**Dữ liệu:** \`{ id, name, group, points: {week, month, total}, trend }\`
+
+`;
+    } else if (lowerFeature.includes('cộng') || lowerFeature.includes('trừ') || lowerFeature.includes('điểm')) {
+        return `
+#### ➕➖ ${feature}
+**Mô tả:** Tìm kiếm + Chọn danh mục + Nhập điểm + Ghi chú. Tự động ghi lịch sử
+**Giao diện:** Form autocomplete, Dropdown danh mục, Toast thông báo, Lịch sử gần đây
+**Dữ liệu:** \`{ id, targetId, categoryId, points, reason, timestamp }\`
+
+`;
+    } else if (lowerFeature.includes('báo cáo') || lowerFeature.includes('report') || lowerFeature.includes('thống kê')) {
+        return `
+#### 📄 ${feature}
+**Mô tả:** Chọn thời gian và đối tượng, tạo báo cáo với nhận xét tự động
+**Giao diện:** Bộ lọc, Preview, Xuất Excel/PDF với template đẹp
+
+`;
+    } else if (lowerFeature.includes('quiz') || lowerFeature.includes('trắc nghiệm') || lowerFeature.includes('câu hỏi')) {
+        return `
+#### ❓ ${feature}
+**Mô tả:** Hiển thị câu hỏi lần lượt, random xáo trộn, đếm ngược, tính điểm
+**Giao diện:** Card câu hỏi, Progress bar, Màn hình kết quả chi tiết
+**Dữ liệu:** \`{ id, question, options: [], correctAnswer, explanation }\`
+
+`;
+    } else if (lowerFeature.includes('quản lý') || lowerFeature.includes('danh sách')) {
+        return `
+#### 📋 ${feature}
+**Mô tả:** CRUD đầy đủ, tìm kiếm realtime, lọc và sắp xếp
+**Giao diện:** Bảng với pagination, Modal form, Confirm dialog, Import/Export
+
+`;
+    } else {
+        return `
+#### ⚡ ${feature}
+**Mô tả:** ${generateGenericDescription(feature, category)}
+**Giao diện:** Thiết kế hiện đại, validation, loading, thông báo kết quả
+
+`;
+    }
+}
+
+// Helper: Tạo mô tả ngắn gọn cho tính năng bổ trợ
+function generateShortDescription(feature: string): string {
+    const lowerFeature = feature.toLowerCase();
+
+    if (lowerFeature.includes('progress') || lowerFeature.includes('tiến độ')) return 'Hiển thị phần trăm hoàn thành';
+    if (lowerFeature.includes('đồng hồ') || lowerFeature.includes('timer')) return 'Hiển thị thời gian còn lại';
+    if (lowerFeature.includes('làm lại') || lowerFeature.includes('reset')) return 'Reset về trạng thái ban đầu';
+    if (lowerFeature.includes('confetti') || lowerFeature.includes('chúc mừng')) return 'Animation chúc mừng';
+    if (lowerFeature.includes('lưu') || lowerFeature.includes('save')) return 'Tự động lưu vào LocalStorage';
+    if (lowerFeature.includes('tìm kiếm') || lowerFeature.includes('search')) return 'Tìm kiếm realtime';
+    if (lowerFeature.includes('lọc') || lowerFeature.includes('filter')) return 'Lọc theo nhiều tiêu chí';
+    if (lowerFeature.includes('sắp xếp') || lowerFeature.includes('sort')) return 'Sắp xếp tăng/giảm';
+    if (lowerFeature.includes('excel') || lowerFeature.includes('xuất')) return 'Export ra Excel';
+    if (lowerFeature.includes('responsive')) return 'Hiển thị tốt trên mọi màn hình';
+    if (lowerFeature.includes('loading')) return 'Hiển thị trạng thái đang xử lý';
+    if (lowerFeature.includes('toast') || lowerFeature.includes('thông báo')) return 'Thông báo popup đẹp mắt';
+
+    return 'Chức năng hỗ trợ trải nghiệm người dùng';
+}
+
+// Helper: Tạo mô tả generic
+function generateGenericDescription(feature: string, category: string): string {
+    if (category === 'Education') return `Hỗ trợ học tập: ${feature}`;
+    if (category === 'Management') return `Quản lý dữ liệu: ${feature}`;
+    if (category === 'Game') return `Tăng tính tương tác: ${feature}`;
+    return `Thực hiện: ${feature}`;
 }
 
 function generateUIRequirements(_category: string, config: typeof categoryConfig['Education']): string {
@@ -1149,6 +1267,158 @@ Hãy tạo ra một ứng dụng web hoàn chỉnh với tích hợp **Gemini AI
 - [ ] **Demo Data:** Có dữ liệu mẫu để demo ngay
 - [ ] **Responsive:** Hoạt động tốt trên mobile/tablet/desktop
 - [ ] **Single Page App:** Không cần backend server phức tạp, chạy trực tiếp trên browser
+`;
+}
+
+// ==========================================
+// PHẦN VI: VAI TRÒ CỦA GEMINI AI
+// ==========================================
+function generateAIRole(category: string, idea: string): string {
+    const lowerIdea = idea.toLowerCase();
+    let aiTasks = '';
+
+    if (category === 'Education' || lowerIdea.includes('quiz') || lowerIdea.includes('kiểm tra') || lowerIdea.includes('học')) {
+        aiTasks = `
+1. **Tự động tạo câu hỏi:**
+   - Giáo viên nhập chủ đề hoặc nội dung bài học
+   - AI phân tích và tạo bộ câu hỏi trắc nghiệm/tự luận
+   - Giáo viên xác nhận hoặc chỉnh sửa
+
+2. **Tạo nhận xét tự động:**
+   - Dựa vào kết quả làm bài, AI tạo nhận xét chi tiết cho từng học sinh
+   - VD: "Em đã làm tốt phần lý thuyết, cần cải thiện phần bài tập áp dụng."
+
+3. **Gợi ý ôn tập thông minh:**
+   - AI phân tích lịch sử làm bài và đề xuất các câu hỏi/chủ đề cần ôn tập
+   - Ưu tiên những phần thường xuyên sai
+
+4. **Giải thích đáp án:**
+   - Khi học sinh chọn sai, AI có thể giải thích tại sao đáp án đúng là gì
+   - Cung cấp thêm kiến thức liên quan`;
+    } else if (category === 'Management' || lowerIdea.includes('quản lý')) {
+        aiTasks = `
+1. **Tự động phân loại:**
+   - Người dùng nhập mô tả sự kiện/dữ liệu
+   - AI phân tích và gợi ý danh mục/phân loại phù hợp
+   - Người dùng xác nhận hoặc chỉnh sửa
+
+2. **Tạo nhận xét/báo cáo tự động:**
+   - Dựa vào dữ liệu, AI tạo nhận xét chi tiết và tổng hợp
+   - VD: "Kết quả tháng này tăng 15% so với tháng trước..."
+
+3. **Gợi ý hành động:**
+   - AI phân tích xu hướng và đề xuất các biện pháp can thiệp
+   - VD: "Cần chú ý đến các mục có điểm thấp trong tuần qua"
+
+4. **Phân tích xu hướng:**
+   - AI đưa ra insight từ dữ liệu tổng hợp
+   - VD: "Phát hiện xu hướng tăng/giảm trong giai đoạn..."
+
+5. **Trả lời câu hỏi:**
+   - Chatbot hỗ trợ tra cứu nhanh
+   - VD: "Những mục nào cần quan tâm tuần này?"`;
+    } else {
+        aiTasks = `
+1. **Xử lý nội dung thông minh:**
+   - AI phân tích và xử lý dữ liệu đầu vào
+   - Tự động nhận diện format và chuyển đổi phù hợp
+
+2. **Tạo nội dung tự động:**
+   - Dựa vào input, AI tạo output theo yêu cầu
+   - Có thể tùy chỉnh style/format
+
+3. **Gợi ý và cải thiện:**
+   - AI đề xuất các cải tiến cho nội dung
+   - Kiểm tra lỗi và đưa ra gợi ý sửa`;
+    }
+
+    return `## VI. VAI TRÒ CỦA GEMINI AI
+
+Gemini AI sẽ hỗ trợ các tác vụ sau:
+${aiTasks}
+
+### Cấu hình API:
+\`\`\`javascript
+// Gọi Gemini API
+const API_KEY = localStorage.getItem('gemini_api_key');
+const response = await fetch(
+  \`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=\${API_KEY}\`,
+  {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      contents: [{ parts: [{ text: prompt }] }]
+    })
+  }
+);
+\`\`\`
+`;
+}
+
+// ==========================================
+// PHẦN VIII: HƯỚNG DẪN SỬ DỤNG
+// ==========================================
+function generateUserGuide(): string {
+    return `## VIII. YÊU CẦU VỀ HƯỚNG DẪN SỬ DỤNG
+
+### 1. Màn hình Welcome (lần đầu sử dụng)
+- Giới thiệu ngắn gọn về app (3-5 điểm chính)
+- Hướng dẫn nhập Gemini API Key (có link lấy key: https://aistudio.google.com/apikey)
+- Hướng dẫn import dữ liệu nếu có template
+- Nút "Bắt đầu" để vào app
+
+### 2. Tooltips & Hints
+- Mỗi tính năng quan trọng có icon (?) hoặc (i) để xem hướng dẫn
+- Hover/click hiển thị tooltip giải thích ngắn gọn
+- First-time hints cho các nút quan trọng
+
+### 3. Empty States
+- Khi chưa có dữ liệu: Hiển thị hình ảnh + text hướng dẫn + nút thao tác
+- VD: "Chưa có dữ liệu nào. Bấm 'Thêm mới' để bắt đầu."
+
+### 4. FAQ Section (trong footer hoặc modal Help)
+- "Làm sao để import danh sách từ Excel?"
+- "Dữ liệu có bị mất khi đóng trình duyệt không?"
+- "Làm sao để backup/restore dữ liệu?"
+- "API Key là gì và lấy ở đâu?"
+`;
+}
+
+// ==========================================
+// PHẦN IX: XỬ LÝ TRƯỜNG HỢP ĐẶC BIỆT
+// ==========================================
+function generateEdgeCases(): string {
+    return `## IX. XỬ LÝ TRƯỜNG HỢP ĐẶC BIỆT
+
+### 1. Dữ liệu trống
+- Hiển thị empty state thân thiện với icon minh họa
+- Có nút CTA rõ ràng (VD: "Thêm dữ liệu đầu tiên")
+- Gợi ý import từ template có sẵn
+
+### 2. API Key không hợp lệ
+- Thông báo lỗi rõ ràng, không technical
+- Có link đến hướng dẫn lấy API Key
+- Cho phép tiếp tục sử dụng app không có tính năng AI
+
+### 3. Dữ liệu quá lớn (>1000 items)
+- Cảnh báo có thể ảnh hưởng hiệu suất
+- Đề xuất xuất dữ liệu cũ ra file và reset
+- Áp dụng phân trang và lazy loading
+
+### 4. Xung đột dữ liệu
+- Cảnh báo khi mở app trên nhiều tab
+- Tự động refresh khi detect thay đổi từ tab khác (storage event)
+
+### 5. Mất kết nối mạng
+- Thông báo khi mất kết nối (offline mode)
+- Các tính năng không cần AI vẫn hoạt động
+- Queue các request AI để gửi lại khi có mạng
+
+### 6. Backup & Restore
+- Nút "Xuất dữ liệu" tạo file JSON backup
+- Nút "Nhập dữ liệu" khôi phục từ backup
+- Cảnh báo trước khi ghi đè dữ liệu hiện tại
+- Tự động backup định kỳ vào LocalStorage với key riêng
 `;
 }
 

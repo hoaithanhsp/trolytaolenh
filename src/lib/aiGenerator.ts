@@ -1840,6 +1840,61 @@ async function callGeminiAPI(
     return data.candidates[0].content.parts[0].text;
 }
 
+// Hàm gọi Vision API với cơ chế fallback (cho phân tích ảnh)
+async function callWithFallbackForVision(
+    imageBase64: string,
+    mimeType: string,
+    prompt: string,
+    apiKey: string,
+    preferredModel: string
+): Promise<string> {
+    const models = [preferredModel, ...AI_MODELS.filter(m => m !== preferredModel)];
+    let lastError: Error | null = null;
+
+    for (const model of models) {
+        try {
+            console.log(`Trying Vision API with model: ${model}`);
+
+            const response = await fetch(
+                `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
+                {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{
+                            parts: [
+                                { text: prompt },
+                                { inline_data: { mime_type: mimeType, data: imageBase64 } }
+                            ]
+                        }],
+                        generationConfig: { temperature: 0.7, maxOutputTokens: 2048 }
+                    })
+                }
+            );
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                const errorMsg = errorData.error?.message || `HTTP ${response.status}`;
+                throw new Error(errorMsg);
+            }
+
+            const data = await response.json();
+            if (!data.candidates?.[0]?.content?.parts?.[0]?.text) {
+                throw new Error('Không nhận được phản hồi từ API');
+            }
+
+            console.log(`Vision API success with model: ${model}`);
+            return data.candidates[0].content.parts[0].text.trim();
+        } catch (error) {
+            lastError = error as Error;
+            console.warn(`Vision API with model ${model} failed:`, error);
+            // Tiếp tục thử model tiếp theo
+        }
+    }
+
+    throw new Error(`Lỗi API: ${lastError?.message || 'Tất cả các model đều thất bại'}. Vui lòng kiểm tra API key hoặc thử lại sau.`);
+}
+
 // Hàm gọi API với cơ chế fallback
 async function callWithFallback(
     prompt: string,
@@ -2164,52 +2219,8 @@ CHÚ Ý:
 - Tập trung vào tính năng thực tế nhìn thấy trong ảnh
 - Không cần giải thích, chỉ trả về mô tả ý tưởng`;
 
-    try {
-        const response = await fetch(
-            `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
-            {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    contents: [{
-                        parts: [
-                            { text: prompt },
-                            {
-                                inline_data: {
-                                    mime_type: mimeType,
-                                    data: imageBase64
-                                }
-                            }
-                        ]
-                    }],
-                    generationConfig: {
-                        temperature: 0.7,
-                        maxOutputTokens: 2048,
-                    }
-                })
-            }
-        );
-
-        if (!response.ok) {
-            const errorData = await response.json().catch(() => ({}));
-            const errorMessage = errorData.error?.message || `HTTP ${response.status}`;
-            throw new Error(`Lỗi API: ${errorMessage}`);
-        }
-
-        const data = await response.json();
-
-        if (!data.candidates || !data.candidates[0]?.content?.parts?.[0]?.text) {
-            throw new Error('Không nhận được phản hồi từ API');
-        }
-
-        return data.candidates[0].content.parts[0].text.trim();
-
-    } catch (error) {
-        console.error('Error analyzing image:', error);
-        throw error;
-    }
+    // Sử dụng hàm fallback để tự động thử các model khác nếu gặp lỗi
+    return await callWithFallbackForVision(imageBase64, mimeType, prompt, apiKey, model);
 }
 
 // Export

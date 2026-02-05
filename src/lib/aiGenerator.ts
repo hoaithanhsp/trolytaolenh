@@ -2223,6 +2223,84 @@ CHÚ Ý:
     return await callWithFallbackForVision(imageBase64, mimeType, prompt, apiKey, model);
 }
 
+// ==========================================
+// PHÂN TÍCH NHIỀU ẢNH VỚI GEMINI VISION API
+// ==========================================
+export async function analyzeMultipleImagesWithAI(
+    images: Array<{ base64: string; mimeType: string }>,
+    apiKey: string,
+    preferredModel?: string
+): Promise<string> {
+    const model = preferredModel || AI_MODELS[0];
+    const models = [model, ...AI_MODELS.filter(m => m !== model)];
+
+    const prompt = `Bạn là chuyên gia phân tích ứng dụng và giao diện người dùng. Hãy phân tích ${images.length} ảnh chụp màn hình sau đây (có thể là các màn hình khác nhau của cùng một ứng dụng) và tạo một MÔ TẢ Ý TƯỞNG ỨNG DỤNG chi tiết và TỔNG HỢP.
+
+NHIỆM VỤ:
+1. Quan sát kỹ TẤT CẢ các giao diện trong các ảnh
+2. Xác định loại ứng dụng (giáo dục, quản lý, game, công cụ, tài chính...)
+3. Liệt kê TẤT CẢ các tính năng chính có thể thấy từ các màn hình
+4. Mô tả đối tượng sử dụng phù hợp
+5. Đề xuất các tính năng bổ sung hữu ích
+
+FORMAT TRẢ VỀ (viết thành đoạn văn mô tả ý tưởng hoàn chỉnh):
+"Ứng dụng [TÊN LOẠI APP] dành cho [ĐỐI TƯỢNG]. Các tính năng chính bao gồm: [LIỆT KÊ TẤT CẢ TÍNH NĂNG TỪ CÁC MÀN HÌNH]. Giao diện cần có: [MÔ TẢ UI]. Yêu cầu đặc biệt: [NẾU CÓ]."
+
+CHÚ Ý:
+- Viết bằng tiếng Việt
+- Tổng hợp thông tin từ TẤT CẢ các ảnh
+- Chi tiết hơn vì có nhiều thông tin từ nhiều màn hình
+- Không cần giải thích, chỉ trả về mô tả ý tưởng`;
+
+    // Tạo parts cho tất cả các ảnh
+    const imageParts = images.map(img => ({
+        inline_data: { mime_type: img.mimeType, data: img.base64 }
+    }));
+
+    let lastError: Error | null = null;
+
+    for (const currentModel of models) {
+        try {
+            console.log(`Trying Vision API (multiple images) with model: ${currentModel}`);
+
+            const response = await fetch(
+                `https://generativelanguage.googleapis.com/v1beta/models/${currentModel}:generateContent?key=${apiKey}`,
+                {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{
+                            parts: [
+                                { text: prompt },
+                                ...imageParts
+                            ]
+                        }],
+                        generationConfig: { temperature: 0.7, maxOutputTokens: 4096 }
+                    })
+                }
+            );
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.error?.message || `HTTP ${response.status}`);
+            }
+
+            const data = await response.json();
+            if (!data.candidates?.[0]?.content?.parts?.[0]?.text) {
+                throw new Error('Không nhận được phản hồi từ API');
+            }
+
+            console.log(`Vision API (multiple images) success with model: ${currentModel}`);
+            return data.candidates[0].content.parts[0].text.trim();
+        } catch (error) {
+            lastError = error as Error;
+            console.warn(`Vision API with model ${currentModel} failed:`, error);
+        }
+    }
+
+    throw new Error(`Lỗi API: ${lastError?.message || 'Tất cả các model đều thất bại'}. Vui lòng kiểm tra API key hoặc thử lại sau.`);
+}
+
 // Export
 export { AI_MODELS };
 export type { GeneratedResult, GenerationProgress, ProgressCallback, EnhancedIdea, AISuggestionsResult };

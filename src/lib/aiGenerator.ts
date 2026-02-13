@@ -2377,75 +2377,294 @@ ${input.customRequirements.map(r => `- ⭐ ${r}`).join('\n')}
 `;
     }
 
-    // Thêm yêu cầu kỹ thuật chung
+    // ===== PHÂN TÍCH CHI TIẾT THEO Ý TƯỞNG =====
+
+    // Tạo danh sách CDN phù hợp
+    const lowerIdea = input.idea.toLowerCase();
+    let relevantCDNs = '';
+    if (lowerIdea.includes('biểu đồ') || lowerIdea.includes('thống kê') || lowerIdea.includes('báo cáo') || lowerIdea.includes('dashboard') || category === 'Management' || category === 'Finance') {
+        relevantCDNs += '- **Chart.js 4:** Biểu đồ thống kê (Bar, Line, Pie, Doughnut)\n';
+    }
+    if (lowerIdea.includes('toán') || lowerIdea.includes('công thức') || lowerIdea.includes('phương trình')) {
+        relevantCDNs += '- **MathJax 3:** Hiển thị công thức Toán học\n';
+    }
+    if (lowerIdea.includes('excel') || lowerIdea.includes('xuất') || lowerIdea.includes('import') || lowerIdea.includes('báo cáo')) {
+        relevantCDNs += '- **SheetJS (xlsx):** Import/Export file Excel\n';
+    }
+    if (lowerIdea.includes('pdf') || lowerIdea.includes('in ấn')) {
+        relevantCDNs += '- **html2pdf.js:** Xuất nội dung ra file PDF\n';
+    }
+    if (lowerIdea.includes('ngày') || lowerIdea.includes('lịch') || lowerIdea.includes('thời gian') || category === 'Finance') {
+        relevantCDNs += '- **Day.js:** Xử lý ngày tháng, định dạng thời gian\n';
+    }
+    if (lowerIdea.includes('kéo thả') || lowerIdea.includes('drag')) {
+        relevantCDNs += '- **SortableJS:** Kéo thả sắp xếp danh sách\n';
+    }
+    relevantCDNs += '- **Marked.js:** Parse markdown response từ AI\n';
+    relevantCDNs += '- **SweetAlert2:** Thông báo popup đẹp mắt\n';
+
+    // Tạo components cụ thể theo ứng dụng
+    let specificComponents = '';
+    if (category === 'Finance' || lowerIdea.includes('tài chính') || lowerIdea.includes('thu chi')) {
+        specificComponents = `
+- **Transaction Form:** Form nhập giao dịch (loại, số tiền, danh mục, ghi chú, ngày)
+- **Budget Cards:** Thẻ hiển thị ngân sách từng danh mục với progress bar hạn mức
+- **Chart Dashboard:** Biểu đồ tròn phân bổ chi tiêu + Biểu đồ đường xu hướng theo thời gian
+- **Transaction List:** Bảng lịch sử giao dịch với filter, sort, search
+- **Savings Tracker:** Widget theo dõi mục tiêu tiết kiệm với thanh tiến độ
+- **AI Analysis Panel:** Khu vực hiển thị phân tích chi tiêu từ Gemini AI
+- **Alert Banner:** Cảnh báo khi chi tiêu vượt hạn mức (màu vàng/đỏ)`;
+    } else if (category === 'Education') {
+        specificComponents = `
+- **Subject Cards:** Grid thẻ môn học/chủ đề với icon, progress
+- **Question Card:** Thẻ hiển thị câu hỏi + lựa chọn đáp án
+- **Score Board:** Bảng điểm với animation và badge
+- **Progress Dashboard:** Dashboard tiến độ học tập tổng quan
+- **AI Tutor Panel:** Khu vực chat với AI để giải đáp thắc mắc
+- **Timer Widget:** Đồng hồ đếm ngược cho bài kiểm tra`;
+    } else if (category === 'Management') {
+        specificComponents = `
+- **Data Table:** Bảng dữ liệu với sort, filter, pagination, search
+- **CRUD Modal:** Modal form thêm/sửa với validation realtime
+- **Stats Cards:** 4 thẻ thống kê nhanh (Tổng, Mới, Hoàn thành, Cần xử lý)
+- **Chart Panel:** Biểu đồ Bar/Line/Pie cho Dashboard thống kê
+- **Export Toolbar:** Thanh công cụ xuất Excel/PDF/Print
+- **AI Assistant:** Panel phân tích dữ liệu và gợi ý từ AI`;
+    } else if (category === 'Game') {
+        specificComponents = `
+- **Game Canvas:** Khu vực chơi game chính
+- **Score Display:** Hiển thị điểm/mạng/level realtime
+- **Leaderboard:** Bảng xếp hạng điểm cao
+- **Start/Pause Menu:** Menu bắt đầu/tạm dừng game
+- **Level Selector:** Chọn level/độ khó
+- **Achievement Badges:** Huy hiệu thành tích`;
+    } else {
+        specificComponents = `
+- **Input Area:** Khu vực nhập liệu chính (textarea/upload/form)
+- **Output Preview:** Xem trước kết quả xử lý
+- **History Panel:** Lịch sử các lần xử lý
+- **Settings Panel:** Cài đặt tùy chỉnh
+- **AI Processing Indicator:** Hiệu ứng đang xử lý AI`;
+    }
+
+    // Tạo mô tả user flow cụ thể
+    let userFlow = '';
+    if (category === 'Finance' || lowerIdea.includes('tài chính')) {
+        userFlow = `
+1. Mở app → Nhập API Key (lần đầu) → Vào Dashboard tổng quan
+2. Dashboard: Xem tổng thu/chi, biểu đồ, cảnh báo hạn mức
+3. Thêm giao dịch: Nhập loại + số tiền + danh mục → AI tự động phân loại
+4. Xem báo cáo: Chọn khoảng thời gian → Xem biểu đồ phân tích → Xuất Excel/PDF
+5. Thiết lập ngân sách: Đặt hạn mức cho từng danh mục → Nhận cảnh báo khi sắp chạm
+6. Mục tiêu tiết kiệm: Tạo mục tiêu → Theo dõi tiến độ → AI gợi ý tối ưu`;
+    } else if (category === 'Education') {
+        userFlow = `
+1. Mở app → Nhập API Key → Chọn môn học/chủ đề
+2. Bắt đầu học: Xem nội dung → Làm bài tập → Nhận phản hồi AI
+3. Kiểm tra: Chọn đề → Làm bài có giới hạn thời gian → Xem kết quả chi tiết
+4. Theo dõi tiến độ: Xem Dashboard → Biểu đồ tiến bộ → Gợi ý ôn tập từ AI`;
+    } else if (category === 'Management') {
+        userFlow = `
+1. Mở app → Nhập API Key → Xem Dashboard tổng quan
+2. Quản lý dữ liệu: Thêm/Sửa/Xóa → Tìm kiếm/Lọc → Sắp xếp
+3. Báo cáo: Chọn loại + thời gian → Xem biểu đồ → Xuất file
+4. AI hỗ trợ: Phân tích xu hướng → Gợi ý hành động → Tạo nhận xét tự động`;
+    } else {
+        userFlow = `
+1. Mở app → Nhập API Key (lần đầu) → Vào giao diện chính
+2. Nhập dữ liệu/Upload file → Chọn tùy chọn xử lý
+3. AI xử lý → Xem kết quả → Copy/Download/Chia sẻ
+4. Xem lịch sử → Sử dụng lại kết quả cũ`;
+    }
+
+    // Tạo data schema cụ thể
+    let dataSchema = '';
+    if (category === 'Finance' || lowerIdea.includes('tài chính') || lowerIdea.includes('thu chi')) {
+        dataSchema = `
+\`\`\`javascript
+const AppData = {
+  transactions: [{
+    id: "txn_001",
+    type: "expense", // "income" | "expense"
+    amount: 150000,
+    category: "Ăn uống", // AI tự phân loại
+    description: "Cơm trưa văn phòng",
+    date: "2024-01-15",
+    tags: ["lunch", "office"]
+  }],
+  budgets: [{
+    category: "Ăn uống",
+    monthlyLimit: 3000000,
+    spent: 1500000,
+    alertAt: 80 // % cảnh báo
+  }],
+  savingsGoals: [{
+    id: "goal_001",
+    name: "Mua laptop",
+    targetAmount: 25000000,
+    currentAmount: 12000000,
+    deadline: "2024-06-30"
+  }],
+  settings: {
+    currency: "VND",
+    theme: "light",
+    notifications: true
+  }
+};
+\`\`\``;
+    } else if (category === 'Education') {
+        dataSchema = `
+\`\`\`javascript
+const AppData = {
+  subjects: [{ id, name, icon, questionsCount }],
+  questions: [{ id, subjectId, content, type, options, correctAnswer, explanation, difficulty }],
+  sessions: [{ id, subjectId, score, totalQuestions, correctAnswers, timeSpent, date }],
+  progress: { totalAttempts, averageScore, streakDays, weakTopics: [] },
+  settings: { theme, soundEnabled, autoSave }
+};
+\`\`\``;
+    } else if (category === 'Management') {
+        dataSchema = `
+\`\`\`javascript
+const AppData = {
+  records: [{ id, title, category, status, priority, description, createdAt, updatedAt }],
+  categories: [{ id, name, icon, color }],
+  logs: [{ id, action, recordId, timestamp, details }],
+  settings: { theme, dateFormat, itemsPerPage, autoBackup }
+};
+\`\`\``;
+    } else {
+        dataSchema = `
+\`\`\`javascript
+const AppData = {
+  items: [{ id, type, content, metadata, createdAt }],
+  history: [{ id, action, data, timestamp }],
+  settings: { theme, language, preferences }
+};
+\`\`\``;
+    }
+
+    // Thêm yêu cầu kỹ thuật CHI TIẾT theo context
     promptCommand += `## 🛠️ YÊU CẦU KỸ THUẬT
 
 ### Công nghệ bắt buộc:
-- **HTML5/CSS3/JavaScript ES6+**
-- **Gemini AI API:** Tích hợp Gemini API cho các tính năng AI thông minh
-- **Responsive Design:** Hiển thị tốt trên mọi thiết bị
-- **LocalStorage:** Lưu trữ dữ liệu và API Key
-- **Font tiếng Việt:** Sử dụng 'Be Vietnam Pro' (Google Fonts)
+- **HTML5/CSS3/JavaScript ES6+** (Single Page Application)
+- **Gemini AI API:** Tích hợp Gemini cho các tính năng AI thông minh
+- **Responsive Design:** Mobile-first, hiển thị tốt trên mọi thiết bị
+- **LocalStorage:** Lưu trữ dữ liệu, settings và API Key
+- **Font tiếng Việt:** 'Be Vietnam Pro' (Google Fonts)
 - **Icons:** FontAwesome 6
+
+### Thư viện CDN phù hợp:
+${relevantCDNs}
+### Mô hình dữ liệu (Data Schema):
+${dataSchema}
 
 ### Tích hợp Gemini AI:
 \`\`\`javascript
-// Gọi Gemini API
-const API_KEY = localStorage.getItem('gemini_api_key');
-const response = await fetch(
-  \`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=\${API_KEY}\`,
-  {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      contents: [{ parts: [{ text: prompt }] }]
-    })
-  }
-);
-\`\`\`
+// Gọi Gemini API với fallback models
+const MODELS = ['gemini-3-flash-preview', 'gemini-3-pro-preview', 'gemini-2.5-flash'];
 
-### Thư viện CDN khuyến nghị:
-${category === 'Education' || input.idea.toLowerCase().includes('toán') ? '- **MathJax 3:** Hiển thị công thức Toán\n' : ''}${category === 'Management' || input.idea.toLowerCase().includes('thống kê') ? '- **Chart.js:** Biểu đồ thống kê\n' : ''}- **Canvas Confetti:** Hiệu ứng chúc mừng
-- **SheetJS (xlsx):** Import/Export Excel (nếu cần)
-- **Marked.js:** Parse markdown response từ AI
+async function callGeminiAI(prompt, modelIndex = 0) {
+  const API_KEY = localStorage.getItem('gemini_api_key');
+  if (!API_KEY) { showToast('Vui lòng nhập API Key!', 'error'); return null; }
+  
+  try {
+    const response = await fetch(
+      \`https://generativelanguage.googleapis.com/v1beta/models/\${MODELS[modelIndex]}:generateContent?key=\${API_KEY}\`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: { temperature: 0.7, maxOutputTokens: 4096 }
+        })
+      }
+    );
+    
+    if (response.status === 429 && modelIndex < MODELS.length - 1) {
+      return callGeminiAI(prompt, modelIndex + 1); // Fallback sang model tiếp theo
+    }
+    if (!response.ok) throw new Error(\`API Error: \${response.status}\`);
+    
+    const data = await response.json();
+    return data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+  } catch (error) {
+    if (modelIndex < MODELS.length - 1) return callGeminiAI(prompt, modelIndex + 1);
+    showToast('Lỗi API: ' + error.message, 'error');
+    return null;
+  }
+}
+\`\`\`
 
 ---
 
-## 🎨 YÊU CẦU GIAO DIỆN
+## 🎨 YÊU CẦU GIAO DIỆN CHI TIẾT
 
 ### Phong cách thiết kế:
 - **Style:** Modern, Clean, tối giản nhưng cuốn hút
-- **Màu sắc chủ đạo:** Gradient đẹp mắt (${config.colors.primary} → ${config.colors.secondary})
+- **Màu sắc chủ đạo:** Gradient (${config.colors.primary} → ${config.colors.secondary})
+- **Background:** #f8fafc (Light) / #0f172a (Dark mode nếu có)
+- **Text:** #1e293b (Primary) / #64748b (Secondary)
+- **Success:** #10b981 | **Warning:** #f59e0b | **Error:** #ef4444
 - **Bo góc:** Border-radius 12px-16px
-- **Shadow:** Subtle shadows cho depth
-- **Animation:** Smooth transitions, micro-interactions
+- **Shadow:** \`box-shadow: 0 4px 12px rgba(0,0,0,0.08)\`
+- **Animation:** Smooth transitions (0.3s ease), micro-interactions
 
-### Components:
-- **API Key Input:** Form nhập/lưu Gemini API Key
-- **Chat/Input Area:** Khu vực nhập liệu và hiển thị response từ AI
-- **Loading Indicator:** Spinner/skeleton khi đang gọi AI
-- **Buttons:** Gradient hoặc Solid, hover effects
-- **Cards:** Modern cards với shadow
-- **Feedback:** Toast notifications cho các hành động
+### Components cụ thể cho ứng dụng này:
+${specificComponents}
+
+### Responsive Breakpoints:
+- **Mobile** (< 640px): Single column, bottom navigation
+- **Tablet** (640-1024px): 2 columns, collapsible sidebar
+- **Desktop** (> 1024px): Full layout với sidebar
+
+---
+
+## 🔄 USER FLOW (Luồng sử dụng)
+${userFlow}
 
 ---
 
 ## 📋 OUTPUT BẮT BUỘC
 
-Tạo ra **ứng dụng web tích hợp Gemini AI** với các yêu cầu:
-- [ ] Cho phép người dùng nhập và lưu API Key (LocalStorage)
-- [ ] Tích hợp Gemini API để xử lý các tác vụ AI thông minh
-- [ ] Xử lý lỗi API (hiển thị thông báo thân thiện)
-- [ ] Loading states khi đang xử lý AI
-- [ ] Dữ liệu mẫu (Demo data) để test ngay
-- [ ] Comments giải thích bằng tiếng Việt
-- [ ] Responsive trên mobile/tablet/desktop
+Tạo ra **ứng dụng web hoàn chỉnh tích hợp Gemini AI** với:
+
+### A. Cấu trúc:
+- [ ] File \`index.html\` duy nhất chứa HTML + CSS + JS
+- [ ] Code sạch, comment đầy đủ bằng tiếng Việt
+
+### B. Tích hợp AI:
+- [ ] Form nhập/lưu API Key (LocalStorage, type="password", toggle hiển thị)
+- [ ] Danh sách chọn Model AI (gemini-3-flash, gemini-3-pro, gemini-2.5-flash)
+- [ ] Cơ chế fallback tự động khi model gặp lỗi
+- [ ] Xử lý lỗi API (Rate limit 429, Invalid key, Network error) với thông báo tiếng Việt
+- [ ] Loading states (spinner/skeleton) khi đang gọi AI
+
+### C. Dữ liệu & UX:
+- [ ] Dữ liệu mẫu (Demo data) đủ để demo ngay tất cả tính năng
+- [ ] Backup/Restore dữ liệu (Export JSON, Import file)
+- [ ] Responsive hoàn toàn trên mobile/tablet/desktop
+- [ ] Empty states thân thiện khi chưa có dữ liệu
+- [ ] Validation form đầy đủ
+
+### D. Triển khai:
+- [ ] Chạy được ngay khi mở file HTML trong trình duyệt
+- [ ] Tương thích Vercel deployment
+- [ ] Nút Settings API Key kèm hướng dẫn luôn hiển thị trên Header
 
 ---
 
 ## 🚀 BẮT ĐẦU TẠO APP!
 
-Hãy tạo app "${title}" với tất cả các tính năng và yêu cầu trên. App phải tích hợp Gemini AI và chạy được ngay khi mở file HTML trong trình duyệt.
+Hãy tạo app "${title}" với tất cả các tính năng và yêu cầu trên.
+
+**Lưu ý quan trọng:**
+1. App phải tích hợp Gemini AI và chạy được ngay khi mở file HTML
+2. Dữ liệu mẫu phải đủ để demo tất cả tính năng chính
+3. Giao diện phải WOW người dùng ngay từ lần đầu mở app
+4. Code phải có comment tiếng Việt và dễ maintain
+5. Xử lý edge cases: API lỗi, dữ liệu rỗng, mất mạng
 `;
 
     return {

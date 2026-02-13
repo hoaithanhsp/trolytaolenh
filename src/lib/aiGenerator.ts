@@ -778,7 +778,7 @@ function generateSystemInstruction(idea: string, category: string, config: typeo
     // Tự động đề xuất tính năng thông minh
     const smartFeatures = inferSmartFeatures(idea, category);
 
-    // ===== TẠO CÁC PHẦN NỘI DUNG THEO CẤU TRÚC 9 PHẦN =====
+    // ===== TẠO CÁC PHẦN NỘI DUNG THEO CẤU TRÚC 17 PHẦN =====
     // I. TỔNG QUAN DỰ ÁN
     const appSummary = generateAppSummary(appTitle, category, cleanIdea, smartFeatures);
 
@@ -794,17 +794,44 @@ function generateSystemInstruction(idea: string, category: string, config: typeo
     // V. YÊU CẦU KỸ THUẬT
     const techRequirements = generateTechnicalRequirements(category);
 
-    // VI. VAI TRÒ CỦA GEMINI AI (MỚI)
+    // VI. VAI TRÒ CỦA GEMINI AI
     const aiRole = generateAIRole(category, cleanIdea);
 
     // VII. YÊU CẦU OUTPUT
     const outputChecklist = generateOutputChecklist();
 
-    // VIII. HƯỚNG DẪN SỬ DỤNG (MỚI)
+    // VIII. HƯỚNG DẪN SỬ DỤNG
     const userGuide = generateUserGuide();
 
-    // IX. XỬ LÝ TRƯỜNG HỢP ĐẶC BIỆT (MỚI)
+    // IX. XỬ LÝ TRƯỜNG HỢP ĐẶC BIỆT
     const edgeCases = generateEdgeCases();
+
+    // X. KIẾN TRÚC ỨNG DỤNG CHI TIẾT
+    const architecture = generateArchitecture(category, cleanIdea);
+
+    // XI. THIẾT KẾ GIAO DIỆN CỤ THỂ
+    const uiDesignSpec = generateUIDesignSpec(category, config, features);
+
+    // XII. LOGIC NGHIỆP VỤ CHI TIẾT
+    const businessLogic = generateBusinessLogic(category, cleanIdea, features);
+
+    // XIII. XỬ LÝ DỮ LIỆU CHI TIẾT
+    const dataHandling = generateDataHandling(category);
+
+    // XIV. TÍNH NĂNG GEMINI AI CỤ THỂ
+    const geminiAIDetails = generateGeminiAIDetails(category, cleanIdea);
+
+    // XV. CODE EXAMPLES
+    const codeExamples = generateCodeExamples(category);
+
+    // XVI. HƯỚNG DẪN TRIỂN KHAI
+    const deploymentGuide = generateDeploymentGuide();
+
+    // XVII. TÍNH NĂNG BẢO MẬT
+    const securityRequirements = generateSecurityRequirements();
+
+    // XVIII. QUY TẮC PHÁT TRIỂN & VẬN HÀNH
+    const aiInstructions = generateAIInstructions();
 
     const systemInstruction = `# ${config.icon} YÊU CẦU TẠO ỨNG DỤNG WEB: ${appTitle}
 
@@ -825,6 +852,24 @@ ${outputChecklist}
 ${userGuide}
 ---
 ${edgeCases}
+---
+${architecture}
+---
+${uiDesignSpec}
+---
+${businessLogic}
+---
+${dataHandling}
+---
+${geminiAIDetails}
+---
+${codeExamples}
+---
+${deploymentGuide}
+---
+${securityRequirements}
+---
+${aiInstructions}
 
 ## 🚀 LỜI NHẮN CHO AI
 
@@ -1419,6 +1464,841 @@ function generateEdgeCases(): string {
 - Nút "Nhập dữ liệu" khôi phục từ backup
 - Cảnh báo trước khi ghi đè dữ liệu hiện tại
 - Tự động backup định kỳ vào LocalStorage với key riêng
+`;
+}
+
+// ==========================================
+// PHẦN XVIII: QUY TẮC PHÁT TRIỂN & VẬN HÀNH
+// ==========================================
+function generateAIInstructions(): string {
+    return `## XVIII. QUY TẮC PHÁT TRIỂN & VẬN HÀNH
+
+### 1. Cấu hình Model AI & Cơ chế Fallback
+- **Model mặc định**: \`gemini-3-flash-preview\`
+- **Model dự phòng**: Tự động chuyển đổi nếu model hiện tại gặp lỗi/quá tải:
+  1. \`gemini-3-flash-preview\`
+  2. \`gemini-3-pro-preview\`
+  3. \`gemini-2.5-flash\`
+- **Cơ chế Retry**:
+  - Nếu gặp lỗi API, hệ thống **tự động** thử lại với model tiếp theo trong danh sách.
+  - Giữ nguyên kết quả các bước trước đó, chỉ retry bước đang lỗi.
+
+### 2. Quản lý API Key
+- Người dùng nhập API key vào Modal hoặc qua nút Settings trên Header.
+- Lưu vào \`localStorage\` của trình duyệt.
+- **Giao diện API Key:**
+  - Hiển thị danh sách chọn Model AI (dạng thẻ/Cards).
+  - Thứ tự: \`gemini-3-flash-preview\` (Default), \`gemini-3-pro-preview\`, \`gemini-2.5-flash\`.
+  - Nút **Settings (API Key)** kèm dòng chữ màu đỏ "Lấy API key để sử dụng app" luôn hiển thị trên Header.
+  - Khi chưa có key, hiển thị Modal bắt buộc nhập.
+  - Hướng dẫn người dùng vào https://aistudio.google.com/api-keys để lấy key.
+  - Link hướng dẫn chi tiết: https://tinyurl.com/hdsdpmTHT
+
+### 3. Quản lý Trạng thái & Lỗi
+- Nếu tất cả model đều thất bại → Hiện thông báo lỗi màu đỏ, hiển thị nguyên văn lỗi từ API (VD: \`429 RESOURCE_EXHAUSTED\`).
+- Trạng thái các cột đang chờ phải chuyển thành **"Đã dừng do lỗi"**, không được hiện "Hoàn tất" nếu quy trình bị gián đoạn.
+- Progress bar chỉ hiển thị trạng thái hoàn thành (xanh) khi bước đó thực sự thành công.
+
+### 4. Triển khai (Deployment)
+- **Nền tảng**: Vercel.
+- **File bắt buộc**: \`vercel.json\` ở root:
+\`\`\`json
+{
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}
+\`\`\`
+`;
+}
+
+// ==========================================
+// PHẦN X: KIẾN TRÚC ỨNG DỤNG CHI TIẾT
+// ==========================================
+function generateArchitecture(category: string, _idea: string): string {
+    let dataSchema = '';
+    let dataFlow = '';
+
+    if (category === 'Education') {
+        dataSchema = `
+// Schema chính
+const AppSchema = {
+  users: [{ id, name, class, role, avatar, createdAt }],
+  subjects: [{ id, name, icon, color }],
+  questions: [{ id, subjectId, content, type, options, correctAnswer, explanation, difficulty, tags }],
+  examSessions: [{ id, userId, subjectId, questions, answers, score, startTime, endTime }],
+  progress: [{ userId, subjectId, totalAttempts, correctCount, averageScore, lastAttempt }],
+  settings: { theme, fontSize, soundEnabled, autoSave, language }
+};`;
+        dataFlow = `Người dùng nhập liệu → Validate Input → Lưu LocalStorage → Render UI → AI xử lý (nếu cần) → Cập nhật State → Re-render`;
+    } else if (category === 'Management') {
+        dataSchema = `
+// Schema chính
+const AppSchema = {
+  records: [{ id, category, title, description, status, priority, createdAt, updatedAt, metadata }],
+  categories: [{ id, name, icon, color, parentId }],
+  users: [{ id, name, role, permissions }],
+  logs: [{ id, action, recordId, userId, timestamp, details }],
+  reports: [{ id, type, dateRange, data, generatedAt }],
+  settings: { theme, dateFormat, currency, language, notifications }
+};`;
+        dataFlow = `Nhập dữ liệu → Validate → CRUD Operations → Lưu LocalStorage → Cập nhật Dashboard → AI phân tích (nếu cần) → Xuất báo cáo`;
+    } else if (category === 'Game') {
+        dataSchema = `
+// Schema chính
+const AppSchema = {
+  player: { name, avatar, level, experience, achievements },
+  gameState: { currentLevel, score, lives, timeRemaining, isPaused },
+  levels: [{ id, name, difficulty, data, unlocked, bestScore }],
+  leaderboard: [{ playerName, score, level, timestamp }],
+  settings: { soundEnabled, musicVolume, difficulty, theme }
+};`;
+        dataFlow = `Start Game → Load Level → Game Loop (Input → Update State → Render) → Check Win/Lose → Save Score → Leaderboard`;
+    } else {
+        dataSchema = `
+// Schema chính  
+const AppSchema = {
+  items: [{ id, type, content, metadata, createdAt, updatedAt }],
+  history: [{ id, action, itemId, timestamp, result }],
+  favorites: [{ itemId, addedAt }],
+  settings: { theme, language, autoSave, preferences }
+};`;
+        dataFlow = `Input dữ liệu → Validate → Xử lý/Chuyển đổi → Preview kết quả → Export/Download`;
+    }
+
+    return `## X. KIẾN TRÚC ỨNG DỤNG CHI TIẾT
+
+### 1. Cấu trúc thư mục
+\`\`\`
+📁 project/
+├── 📄 index.html          # Giao diện chính (Single Page)
+├── 📄 style.css            # Stylesheet riêng (nếu tách)
+├── 📄 app.js               # Logic chính + Gemini API
+├── 📄 data.js              # Dữ liệu mẫu / Constants
+└── 📄 README.md            # Hướng dẫn sử dụng
+\`\`\`
+
+### 2. Luồng dữ liệu (Data Flow)
+\`\`\`
+${dataFlow}
+\`\`\`
+
+### 3. Mô hình dữ liệu (Data Schema)
+\`\`\`javascript
+${dataSchema}
+\`\`\`
+`;
+}
+
+// ==========================================
+// PHẦN XI: THIẾT KẾ GIAO DIỆN CỤ THỂ
+// ==========================================
+function generateUIDesignSpec(category: string, config: typeof categoryConfig['Education'], _features: { explicit: string[] }): string {
+    let screens = '';
+
+    if (category === 'Education') {
+        screens = `
+#### Màn hình 1: Trang chủ / Dashboard
+- **Header:** Logo + Tên app + Nút Settings (⚙️)
+- **Body:** Grid cards hiển thị các môn học/chủ đề, mỗi card có icon + tên + số câu hỏi + progress bar
+- **Sidebar (Desktop):** Menu navigation + User info
+- **Footer:** Copyright + Version
+
+#### Màn hình 2: Làm bài / Tương tác chính
+- **Top bar:** Timer đếm ngược + Số câu hiện tại/tổng + Nút thoát
+- **Center:** Card câu hỏi lớn + Các lựa chọn (A/B/C/D)
+- **Bottom:** Nút Previous/Next + Progress bar
+
+#### Màn hình 3: Kết quả
+- **Score card:** Điểm lớn ở giữa + Animation chúc mừng
+- **Chi tiết:** Danh sách câu đúng/sai + Giải thích
+- **Actions:** Nút Làm lại + Xem đáp án + Chia sẻ`;
+    } else if (category === 'Management') {
+        screens = `
+#### Màn hình 1: Dashboard
+- **Header:** Logo + Search bar + User avatar + Notifications bell
+- **Stats row:** 4 cards thống kê nhanh (Tổng, Mới, Hoàn thành, Cần xử lý)
+- **Charts:** 1-2 biểu đồ (Bar/Line/Pie) hiển thị xu hướng
+- **Recent:** Bảng dữ liệu gần đây (5-10 items)
+
+#### Màn hình 2: Danh sách & CRUD
+- **Toolbar:** Search + Filter dropdowns + Nút Thêm mới + Export
+- **Table/Cards:** Hiển thị data dạng bảng (desktop) hoặc cards (mobile)
+- **Pagination:** Phân trang hoặc infinite scroll
+- **Modal Form:** Form thêm/sửa với validation realtime
+
+#### Màn hình 3: Báo cáo & Xuất dữ liệu
+- **Filter bar:** Chọn khoảng thời gian + Loại báo cáo
+- **Preview:** Xem trước báo cáo
+- **Export buttons:** Excel, PDF, Print`;
+    } else {
+        screens = `
+#### Màn hình 1: Input / Upload
+- **Header:** Logo + Tên app + Hướng dẫn ngắn
+- **Input area:** Textarea lớn hoặc Drag & Drop zone
+- **Options:** Các tùy chọn xử lý (dropdowns, checkboxes)
+- **Action button:** Nút "Xử lý" / "Chuyển đổi" nổi bật
+
+#### Màn hình 2: Kết quả / Output
+- **Preview:** Hiển thị kết quả real-time
+- **Actions:** Copy, Download, Share
+- **History:** Lịch sử các lần xử lý gần đây`;
+    }
+
+    return `## XI. THIẾT KẾ GIAO DIỆN CỤ THỂ
+
+### 1. Wireframe từng màn hình
+${screens}
+
+### 2. User Flow (Luồng sử dụng)
+\`\`\`
+Mở app → [Lần đầu?] → Nhập API Key → Welcome Screen
+                    → [Đã có key?] → Dashboard/Trang chủ
+→ Chọn chức năng → Thực hiện tác vụ → Xem kết quả
+→ Lưu/Xuất dữ liệu → Quay lại Dashboard
+\`\`\`
+
+### 3. Responsive Breakpoints
+| Thiết bị | Width | Layout |
+|----------|-------|--------|
+| Mobile | < 640px | Single column, Bottom nav |
+| Tablet | 640-1024px | 2 columns, Side nav |
+| Desktop | > 1024px | Full layout, Sidebar |
+
+### 4. Bảng màu chi tiết
+- **Primary:** ${config.colors.primary} (Buttons, Links, Active states)
+- **Secondary:** ${config.colors.secondary} (Accents, Badges, Tags)
+- **Background:** #f8fafc (Light) / #0f172a (Dark mode)
+- **Text:** #1e293b (Primary) / #64748b (Secondary)
+- **Success:** #10b981 | **Warning:** #f59e0b | **Error:** #ef4444
+`;
+}
+
+// ==========================================
+// PHẦN XII: LOGIC NGHIỆP VỤ CHI TIẾT
+// ==========================================
+function generateBusinessLogic(category: string, _idea: string, _features: { explicit: string[] }): string {
+    let algorithms = '';
+
+    if (category === 'Education') {
+        algorithms = `
+### Thuật toán chính
+
+#### 1. Tính điểm thông minh
+\`\`\`javascript
+function calculateScore(answers, questions, timeSpent) {
+  let baseScore = 0;
+  answers.forEach((answer, index) => {
+    if (answer === questions[index].correctAnswer) {
+      baseScore += 10; // Điểm cơ bản
+      // Bonus thời gian: trả lời nhanh được thêm điểm
+      const timeBonus = Math.max(0, 5 - Math.floor(timeSpent[index] / 10));
+      baseScore += timeBonus;
+    }
+  });
+  return {
+    score: baseScore,
+    percentage: (baseScore / (questions.length * 15)) * 100,
+    grade: baseScore >= 80 ? 'A' : baseScore >= 60 ? 'B' : baseScore >= 40 ? 'C' : 'D'
+  };
+}
+\`\`\`
+
+#### 2. Thuật toán xáo trộn câu hỏi (Fisher-Yates)
+\`\`\`javascript
+function shuffleArray(array) {
+  const shuffled = [...array];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
+}
+\`\`\`
+
+#### 3. Theo dõi tiến độ học tập
+\`\`\`javascript
+function trackProgress(userId, subjectId, result) {
+  const key = \\\`progress_\\\${userId}_\\\${subjectId}\\\`;
+  const progress = loadData(key) || { attempts: 0, totalScore: 0, history: [] };
+  progress.attempts++;
+  progress.totalScore += result.score;
+  progress.averageScore = progress.totalScore / progress.attempts;
+  progress.history.push({ date: new Date().toISOString(), score: result.score });
+  saveData(key, progress);
+  return progress;
+}
+\`\`\``;
+    } else if (category === 'Management') {
+        algorithms = `
+### Thuật toán chính
+
+#### 1. Tìm kiếm và lọc dữ liệu
+\`\`\`javascript
+function searchAndFilter(data, { keyword, category, dateRange, status }) {
+  return data.filter(item => {
+    const matchKeyword = !keyword || 
+      Object.values(item).some(v => String(v).toLowerCase().includes(keyword.toLowerCase()));
+    const matchCategory = !category || item.category === category;
+    const matchDate = !dateRange || 
+      (new Date(item.createdAt) >= dateRange.start && new Date(item.createdAt) <= dateRange.end);
+    const matchStatus = !status || item.status === status;
+    return matchKeyword && matchCategory && matchDate && matchStatus;
+  });
+}
+\`\`\`
+
+#### 2. Tính toán thống kê Dashboard
+\`\`\`javascript
+function calculateStats(data) {
+  const total = data.length;
+  const today = data.filter(d => isToday(d.createdAt)).length;
+  const completed = data.filter(d => d.status === 'completed').length;
+  const pending = data.filter(d => d.status === 'pending').length;
+  const trend = calculateTrend(data, 7); // So sánh 7 ngày
+  return { total, today, completed, pending, trend, completionRate: (completed/total*100).toFixed(1) };
+}
+\`\`\`
+
+#### 3. Sắp xếp đa tiêu chí
+\`\`\`javascript
+function multiSort(data, sortKeys) {
+  return [...data].sort((a, b) => {
+    for (const { key, direction } of sortKeys) {
+      const cmp = String(a[key]).localeCompare(String(b[key]), 'vi');
+      if (cmp !== 0) return direction === 'asc' ? cmp : -cmp;
+    }
+    return 0;
+  });
+}
+\`\`\``;
+    } else {
+        algorithms = `
+### Thuật toán chính
+
+#### 1. Xử lý Input thông minh
+\`\`\`javascript
+function processInput(input, options) {
+  // Detect loại input tự động
+  const inputType = detectInputType(input); // text, json, csv, html
+  // Validate
+  const validation = validateInput(input, inputType);
+  if (!validation.valid) return { error: validation.message };
+  // Transform theo options
+  const result = transform(input, inputType, options);
+  return { success: true, data: result, inputType };
+}
+\`\`\`
+
+#### 2. Quản lý lịch sử
+\`\`\`javascript
+function addToHistory(action, data) {
+  const history = loadData('app_history') || [];
+  history.unshift({ id: Date.now(), action, data, timestamp: new Date().toISOString() });
+  if (history.length > 50) history.pop(); // Giới hạn 50 items
+  saveData('app_history', history);
+}
+\`\`\``;
+    }
+
+    return `## XII. LOGIC NGHIỆP VỤ CHI TIẾT
+${algorithms}
+
+### Logic nhắc nhở thông minh
+\`\`\`javascript
+// Kiểm tra và hiện nhắc nhở khi cần
+function checkReminders() {
+  const lastVisit = loadData('last_visit');
+  const now = Date.now();
+  if (!lastVisit || (now - lastVisit) > 24 * 60 * 60 * 1000) {
+    showToast('Chào mừng bạn quay lại! 👋', 'info');
+  }
+  saveData('last_visit', now);
+}
+\`\`\`
+`;
+}
+
+// ==========================================
+// PHẦN XIII: XỬ LÝ DỮ LIỆU CHI TIẾT
+// ==========================================
+function generateDataHandling(category: string): string {
+    let storageKeys = '';
+    if (category === 'Education') {
+        storageKeys = `
+| Key | Mô tả | Kiểu dữ liệu |
+|-----|--------|---------------|
+| \\\`app_questions\\\` | Ngân hàng câu hỏi | Array<Question> |
+| \\\`app_history\\\` | Lịch sử làm bài | Array<Session> |
+| \\\`app_progress\\\` | Tiến độ học tập | Object |
+| \\\`app_settings\\\` | Cài đặt ứng dụng | Object |
+| \\\`gemini_api_key\\\` | API Key Gemini | String |
+| \\\`app_backup_auto\\\` | Backup tự động | JSON String |`;
+    } else if (category === 'Management') {
+        storageKeys = `
+| Key | Mô tả | Kiểu dữ liệu |
+|-----|--------|---------------|
+| \\\`app_records\\\` | Dữ liệu chính | Array<Record> |
+| \\\`app_categories\\\` | Danh mục | Array<Category> |
+| \\\`app_logs\\\` | Nhật ký hoạt động | Array<Log> |
+| \\\`app_settings\\\` | Cài đặt ứng dụng | Object |
+| \\\`gemini_api_key\\\` | API Key Gemini | String |
+| \\\`app_backup_auto\\\` | Backup tự động | JSON String |`;
+    } else {
+        storageKeys = `
+| Key | Mô tả | Kiểu dữ liệu |
+|-----|--------|---------------|
+| \\\`app_data\\\` | Dữ liệu chính | Array/Object |
+| \\\`app_history\\\` | Lịch sử thao tác | Array<HistoryItem> |
+| \\\`app_favorites\\\` | Mục yêu thích | Array |
+| \\\`app_settings\\\` | Cài đặt ứng dụng | Object |
+| \\\`gemini_api_key\\\` | API Key Gemini | String |
+| \\\`app_backup_auto\\\` | Backup tự động | JSON String |`;
+    }
+
+    return `## XIII. XỬ LÝ DỮ LIỆU CHI TIẾT
+
+### 1. Cấu trúc LocalStorage
+${storageKeys}
+
+### 2. Chiến lược Backup/Restore
+\`\`\`javascript
+// Auto backup mỗi 5 phút
+setInterval(() => {
+  const allData = {};
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    if (key.startsWith('app_')) allData[key] = localStorage.getItem(key);
+  }
+  localStorage.setItem('app_backup_auto', JSON.stringify({ data: allData, timestamp: Date.now() }));
+}, 5 * 60 * 1000);
+
+// Export backup ra file JSON
+function exportBackup() {
+  const backup = { version: '1.0', exportedAt: new Date().toISOString(), data: {} };
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    if (key.startsWith('app_')) backup.data[key] = JSON.parse(localStorage.getItem(key));
+  }
+  const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+  a.download = \\\`backup_\\\${new Date().toISOString().slice(0,10)}.json\\\`; a.click();
+}
+
+// Import backup từ file
+function importBackup(file) {
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const backup = JSON.parse(e.target.result);
+    if (confirm('Ghi đè dữ liệu hiện tại?')) {
+      Object.entries(backup.data).forEach(([key, value]) => {
+        localStorage.setItem(key, JSON.stringify(value));
+      });
+      location.reload();
+    }
+  };
+  reader.readAsText(file);
+}
+\`\`\`
+
+### 3. Validation Rules
+\`\`\`javascript
+const validationRules = {
+  required: (value) => value !== '' && value !== null && value !== undefined,
+  minLength: (value, min) => String(value).length >= min,
+  maxLength: (value, max) => String(value).length <= max,
+  email: (value) => /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(value),
+  number: (value) => !isNaN(Number(value)),
+  phone: (value) => /^(0[0-9]{9,10})$/.test(value),
+  date: (value) => !isNaN(Date.parse(value)),
+  
+  // Validate form
+  validateForm(formData, rules) {
+    const errors = {};
+    for (const [field, fieldRules] of Object.entries(rules)) {
+      for (const rule of fieldRules) {
+        if (!this[rule.type](formData[field], rule.param)) {
+          errors[field] = rule.message;
+          break;
+        }
+      }
+    }
+    return { valid: Object.keys(errors).length === 0, errors };
+  }
+};
+\`\`\`
+`;
+}
+
+// ==========================================
+// PHẦN XIV: TÍNH NĂNG GEMINI AI CỤ THỂ
+// ==========================================
+function generateGeminiAIDetails(category: string, _idea: string): string {
+    let aiPrompts = '';
+
+    if (category === 'Education') {
+        aiPrompts = `
+#### Prompt 1: Tạo câu hỏi tự động
+\`\`\`javascript
+const prompt = \\\`Bạn là giáo viên chuyên tạo đề kiểm tra.
+Hãy tạo \\\${soLuong} câu hỏi trắc nghiệm về chủ đề "\\\${chuDe}" cho học sinh \\\${capHoc}.
+Trả về JSON array:
+[{"question": "...", "options": ["A...", "B...", "C...", "D..."], "correctAnswer": 0, "explanation": "..."}]
+CHỈ trả về JSON, không thêm text khác.\\\`;
+\`\`\`
+
+#### Prompt 2: Nhận xét học sinh
+\`\`\`javascript
+const prompt = \\\`Dựa vào kết quả: Đúng \\\${correct}/\\\${total} câu, điểm \\\${score}.
+Các câu sai: \\\${wrongTopics.join(', ')}.
+Viết nhận xét ngắn gọn (3-4 câu) bằng tiếng Việt, khuyến khích và gợi ý cải thiện.\\\`;
+\`\`\``;
+    } else if (category === 'Management') {
+        aiPrompts = `
+#### Prompt 1: Phân tích dữ liệu
+\`\`\`javascript
+const prompt = \\\`Phân tích dữ liệu sau và đưa ra nhận xét:
+\\\${JSON.stringify(data)}
+Trả về JSON: {"summary": "...", "insights": ["..."], "recommendations": ["..."], "trend": "up|down|stable"}\\\`;
+\`\`\`
+
+#### Prompt 2: Tạo báo cáo tự động
+\`\`\`javascript
+const prompt = \\\`Dựa vào dữ liệu thống kê:
+- Tổng: \\\${stats.total}, Hoàn thành: \\\${stats.completed}
+- Xu hướng: \\\${stats.trend}
+Viết báo cáo tổng hợp bằng tiếng Việt (5-7 câu), bao gồm nhận xét và đề xuất.\\\`;
+\`\`\``;
+    } else {
+        aiPrompts = `
+#### Prompt 1: Xử lý nội dung
+\`\`\`javascript
+const prompt = \\\`Xử lý nội dung sau theo yêu cầu "\\\${userRequest}":
+\\\${inputContent}
+Trả về kết quả đã xử lý. Giữ nguyên format nếu có thể.\\\`;
+\`\`\`
+
+#### Prompt 2: Gợi ý cải thiện  
+\`\`\`javascript
+const prompt = \\\`Phân tích nội dung sau và đề xuất 3-5 cải tiến:
+\\\${content}
+Trả về JSON: {"suggestions": [{"title": "...", "description": "...", "priority": "high|medium|low"}]}\\\`;
+\`\`\``;
+    }
+
+    return `## XIV. TÍNH NĂNG GEMINI AI CỤ THỂ
+
+### 1. Danh sách Prompts cho từng tính năng
+${aiPrompts}
+
+### 2. Cách parse response từ AI
+\`\`\`javascript
+async function callGeminiAI(prompt) {
+  const API_KEY = localStorage.getItem('gemini_api_key');
+  if (!API_KEY) { showToast('Vui lòng nhập API Key!', 'error'); return null; }
+  
+  try {
+    const response = await fetch(
+      \\\`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=\\\${API_KEY}\\\`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: { temperature: 0.7, maxOutputTokens: 4096 }
+        })
+      }
+    );
+    
+    if (response.status === 429) throw new Error('RATE_LIMIT');
+    if (response.status === 401 || response.status === 403) throw new Error('INVALID_KEY');
+    if (!response.ok) throw new Error('API_ERROR');
+    
+    const data = await response.json();
+    const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    
+    // Thử parse JSON nếu response chứa JSON
+    const jsonMatch = text.match(/\\[\\s*\\{[\\s\\S]*\\}\\s*\\]|\\{[\\s\\S]*\\}/);
+    if (jsonMatch) {
+      try { return JSON.parse(jsonMatch[0]); } catch {}
+    }
+    return text;
+  } catch (error) {
+    handleAIError(error);
+    return null;
+  }
+}
+\`\`\`
+
+### 3. Fallback khi API lỗi
+\`\`\`javascript
+function handleAIError(error) {
+  const errorMessages = {
+    'RATE_LIMIT': 'API đã hết giới hạn. Vui lòng đợi 1 phút rồi thử lại.',
+    'INVALID_KEY': 'API Key không hợp lệ. Vui lòng kiểm tra lại.',
+    'API_ERROR': 'Lỗi kết nối. Vui lòng kiểm tra mạng và thử lại.',
+    'default': 'Đã xảy ra lỗi. Vui lòng thử lại sau.'
+  };
+  const msg = errorMessages[error.message] || errorMessages['default'];
+  showToast(msg, 'error');
+  
+  // Fallback: sử dụng dữ liệu local nếu có
+  return loadData('cached_ai_response') || null;
+}
+
+// Retry logic với exponential backoff
+async function callWithRetry(prompt, maxRetries = 3) {
+  for (let i = 0; i < maxRetries; i++) {
+    const result = await callGeminiAI(prompt);
+    if (result) return result;
+    await new Promise(r => setTimeout(r, Math.pow(2, i) * 1000));
+  }
+  return null;
+}
+\`\`\`
+`;
+}
+
+// ==========================================
+// PHẦN XV: CODE EXAMPLES
+// ==========================================
+function generateCodeExamples(_category: string): string {
+    return `## XV. CODE EXAMPLES
+
+### 1. State Management
+\`\`\`javascript
+// Centralized State Management
+const AppState = {
+  _state: {},
+  _listeners: [],
+  
+  get(key) { return this._state[key]; },
+  
+  set(key, value) {
+    this._state[key] = value;
+    this._notify(key);
+    this._persist();
+  },
+  
+  subscribe(callback) {
+    this._listeners.push(callback);
+    return () => { this._listeners = this._listeners.filter(l => l !== callback); };
+  },
+  
+  _notify(key) {
+    this._listeners.forEach(cb => cb(key, this._state[key]));
+  },
+  
+  _persist() {
+    localStorage.setItem('app_state', JSON.stringify(this._state));
+  },
+  
+  init() {
+    const saved = localStorage.getItem('app_state');
+    if (saved) this._state = JSON.parse(saved);
+  }
+};
+\`\`\`
+
+### 2. Component Pattern
+\`\`\`javascript
+// Reusable Component Pattern
+function createComponent(containerId, { template, data, events }) {
+  const container = document.getElementById(containerId);
+  
+  function render() {
+    container.innerHTML = template(data);
+    // Bind events sau khi render
+    if (events) {
+      Object.entries(events).forEach(([selector, handlers]) => {
+        container.querySelectorAll(selector).forEach(el => {
+          Object.entries(handlers).forEach(([event, handler]) => {
+            el.addEventListener(event, handler);
+          });
+        });
+      });
+    }
+  }
+  
+  function update(newData) {
+    Object.assign(data, newData);
+    render();
+  }
+  
+  render();
+  return { render, update, data };
+}
+\`\`\`
+
+### 3. Event Handling & Delegation
+\`\`\`javascript
+// Event Delegation cho danh sách động
+document.getElementById('list-container').addEventListener('click', (e) => {
+  const btn = e.target.closest('[data-action]');
+  if (!btn) return;
+  
+  const action = btn.dataset.action;
+  const id = btn.closest('[data-id]')?.dataset.id;
+  
+  switch(action) {
+    case 'edit': handleEdit(id); break;
+    case 'delete': handleDelete(id); break;
+    case 'view': handleView(id); break;
+  }
+});
+\`\`\`
+
+### 4. Modal Component
+\`\`\`javascript
+function showModal({ title, content, onConfirm, onCancel }) {
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay';
+  overlay.innerHTML = \\\`
+    <div class="modal-content">
+      <h3>\\\${title}</h3>
+      <div class="modal-body">\\\${content}</div>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" id="modal-cancel">Hủy</button>
+        <button class="btn btn-primary" id="modal-confirm">Xác nhận</button>
+      </div>
+    </div>
+  \\\`;
+  document.body.appendChild(overlay);
+  overlay.querySelector('#modal-confirm').onclick = () => { onConfirm?.(); overlay.remove(); };
+  overlay.querySelector('#modal-cancel').onclick = () => { onCancel?.(); overlay.remove(); };
+  overlay.onclick = (e) => { if (e.target === overlay) overlay.remove(); };
+}
+\`\`\`
+`;
+}
+
+// ==========================================
+// PHẦN XVI: HƯỚNG DẪN TRIỂN KHAI
+// ==========================================
+function generateDeploymentGuide(): string {
+    return `## XVI. HƯỚNG DẪN TRIỂN KHAI
+
+### 1. Bước Setup chi tiết
+1. **Tạo file cấu trúc:** Tạo \`index.html\`, viết toàn bộ HTML + CSS + JS trong 1 file
+2. **Thêm CDN libraries:** Copy các link CDN vào \`<head>\` (FontAwesome, Google Fonts, Chart.js...)
+3. **Cấu hình API Key:** Tạo form nhập API Key và lưu vào LocalStorage
+4. **Thêm demo data:** Tạo dữ liệu mẫu để app chạy được ngay khi mở
+5. **Test trên trình duyệt:** Mở file HTML trực tiếp trong Chrome/Edge
+
+### 2. Cách test từng tính năng
+| Tính năng | Cách test | Expected Result |
+|-----------|-----------|-----------------|
+| API Key | Nhập key → Lưu → Refresh trang | Key vẫn còn sau refresh |
+| CRUD | Thêm/Sửa/Xóa item | Dữ liệu cập nhật realtime |
+| AI Features | Nhập prompt → Gọi AI | Nhận response và hiển thị |
+| Export | Bấm Export → Kiểm tra file | File Excel/JSON tải về |
+| Responsive | Resize browser | Layout tự điều chỉnh |
+| Offline | Tắt mạng → Dùng app | Các tính năng local vẫn hoạt động |
+
+### 3. Troubleshooting Guide
+
+| Lỗi | Nguyên nhân | Cách sửa |
+|-----|-------------|----------|
+| "API Key không hợp lệ" | Key sai hoặc hết hạn | Tạo key mới tại aistudio.google.com/apikey |
+| AI không phản hồi | Rate limit hoặc mất mạng | Đợi 60s rồi thử lại |
+| Dữ liệu mất sau refresh | LocalStorage bị xóa | Kiểm tra incognito mode, dùng chức năng Backup |
+| Giao diện vỡ trên mobile | CSS chưa responsive | Kiểm tra media queries |
+| Import Excel lỗi | Sai format file | Dùng template mẫu để import |
+`;
+}
+
+// ==========================================
+// PHẦN XVII: TÍNH NĂNG BẢO MẬT
+// ==========================================
+function generateSecurityRequirements(): string {
+    return `## XVII. TÍNH NĂNG BẢO MẬT
+
+### 1. Bảo vệ API Key
+\`\`\`javascript
+// Không hiển thị API Key dạng plain text
+function maskApiKey(key) {
+  if (!key || key.length < 8) return '****';
+  return key.slice(0, 4) + '****' + key.slice(-4);
+}
+
+// Input type="password" cho API Key
+// <input type="password" id="apiKeyInput" placeholder="Nhập Gemini API Key...">
+// <button onclick="toggleKeyVisibility()">👁️</button>
+
+function toggleKeyVisibility() {
+  const input = document.getElementById('apiKeyInput');
+  input.type = input.type === 'password' ? 'text' : 'password';
+}
+\`\`\`
+
+### 2. Xử lý Rate Limiting
+\`\`\`javascript
+const RateLimiter = {
+  lastCall: 0,
+  minInterval: 1000, // Tối thiểu 1 giây giữa các lần gọi
+  queue: [],
+  
+  async call(fn) {
+    const now = Date.now();
+    const wait = Math.max(0, this.lastCall + this.minInterval - now);
+    await new Promise(r => setTimeout(r, wait));
+    this.lastCall = Date.now();
+    return fn();
+  }
+};
+
+// Sử dụng: await RateLimiter.call(() => callGeminiAI(prompt));
+\`\`\`
+
+### 3. Error Handling toàn diện
+\`\`\`javascript
+// Global Error Handler
+window.onerror = function(msg, url, line, col, error) {
+  console.error('App Error:', { msg, url, line, col });
+  showToast('Đã xảy ra lỗi. Vui lòng thử lại.', 'error');
+  return true;
+};
+
+// Promise rejection handler
+window.addEventListener('unhandledrejection', (event) => {
+  console.error('Unhandled Promise:', event.reason);
+  showToast('Lỗi xử lý. Vui lòng thử lại.', 'error');
+  event.preventDefault();
+});
+
+// Safe JSON parse
+function safeJsonParse(str, fallback = null) {
+  try { return JSON.parse(str); }
+  catch { return fallback; }
+}
+
+// Safe localStorage access
+function safeStorage(action, key, value) {
+  try {
+    if (action === 'get') return JSON.parse(localStorage.getItem(key));
+    if (action === 'set') localStorage.setItem(key, JSON.stringify(value));
+    if (action === 'remove') localStorage.removeItem(key);
+  } catch (e) {
+    console.warn('Storage error:', e);
+    if (action === 'get') return null;
+  }
+}
+\`\`\`
+
+### 4. Sanitize Input
+\`\`\`javascript
+function sanitizeHTML(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+// Sử dụng khi hiển thị user input
+element.innerHTML = sanitizeHTML(userInput);
+\`\`\`
 `;
 }
 

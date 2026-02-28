@@ -83,7 +83,7 @@ export default function InputSection({ onGeneratePrompt, isLoading }: InputSecti
   const handleEnhanceIdea = async () => {
     const apiKey = getApiKey();
     if (!apiKey) {
-      setEnhanceError('Vui lòng cấu hình API Key trước khi sử dụng tính năng này');
+      setEnhanceError('⚠️ Chưa có API Key! Vui lòng nhấn nút "Settings" ở góc trên bên phải để cấu hình API Key trước.');
       return;
     }
 
@@ -101,10 +101,18 @@ export default function InputSection({ onGeneratePrompt, isLoading }: InputSecti
       setIdeaSummary(result.summary);
       setIdea(result.enhancedIdea);
       setIsIdeaEnhanced(true);
+      setEnhanceError('');
       // Dừng lại để giáo viên tùy chỉnh, KHÔNG tự động lấy gợi ý
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error enhancing idea:', error);
-      setEnhanceError('Có lỗi khi hoàn thiện ý tưởng. Vui lòng thử lại.');
+      const errMsg = error instanceof Error ? error.message : '';
+      if (errMsg.includes('API key') || errMsg.includes('401') || errMsg.includes('403')) {
+        setEnhanceError('⚠️ API Key không hợp lệ hoặc đã hết hạn. Vui lòng kiểm tra lại trong Settings.');
+      } else if (errMsg.includes('quota') || errMsg.includes('429')) {
+        setEnhanceError('⚠️ Đã hết quota API. Vui lòng đợi một lúc hoặc đổi API Key.');
+      } else {
+        setEnhanceError('Có lỗi khi hoàn thiện ý tưởng. Vui lòng kiểm tra API Key và thử lại.');
+      }
     } finally {
       setIsEnhancing(false);
     }
@@ -113,8 +121,12 @@ export default function InputSection({ onGeneratePrompt, isLoading }: InputSecti
   // Lấy gợi ý AI chuyên sâu
   const loadAISuggestions = async (ideaText: string) => {
     const apiKey = getApiKey();
-    if (!apiKey) return;
+    if (!apiKey) {
+      setEnhanceError('Vui lòng cấu hình API Key trước khi sử dụng tính năng này. Nhấn nút Settings ở góc trên bên phải.');
+      return;
+    }
 
+    setEnhanceError('');
     setIsLoadingSuggestions(true);
     try {
       const suggestions = await getAISuggestions(ideaText, apiKey);
@@ -122,6 +134,7 @@ export default function InputSection({ onGeneratePrompt, isLoading }: InputSecti
       setShowSuggestions(true);
     } catch (error) {
       console.error('Error getting AI suggestions:', error);
+      setEnhanceError('Có lỗi khi lấy gợi ý. Vui lòng kiểm tra API Key và thử lại.');
     } finally {
       setIsLoadingSuggestions(false);
     }

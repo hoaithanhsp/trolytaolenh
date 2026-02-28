@@ -140,7 +140,7 @@ export default function ImageWebAnalyzer({
     const handleAnalyze = async () => {
         const apiKey = getApiKey();
         if (!apiKey) {
-            setError('Vui lòng cấu hình API Key trước khi sử dụng tính năng này');
+            setError('⚠️ Chưa có API Key! Vui lòng nhấn nút "Settings" ở góc trên bên phải để cấu hình API Key trước.');
             return;
         }
 
